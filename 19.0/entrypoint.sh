@@ -27,9 +27,6 @@ check_config "db_host" "$HOST"
 check_config "db_port" "$PORT"
 check_config "db_user" "$USER"
 check_config "db_password" "$PASSWORD"
-if [ -n "${DB_SSLMODE}" ]; then
-    check_config "db_sslmode" "$DB_SSLMODE"
-fi
 
 case "$1" in
     -- | odoo)
