@@ -1,0 +1,32 @@
+# Environment files with secrets
+.env
+.env.local
+.env.prod
+
+# Keep examples
+!.env.example
+!.env.prod.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backups
+backups/
+*.sql
+*.dump
+
+# Temp
+*.tmp
+*.log

@@ -1,0 +1,105 @@
+# =============================================================================
+# DigitalOcean App Platform Specification
+# =============================================================================
+# Deploy: doctl apps create --spec app.yaml
+# Update: doctl apps update <app-id> --spec app.yaml
+
+name: odoo-multi-tenant
+
+region: nyc
+
+# -----------------------------------------------------------------------------
+# Web Service (Odoo)
+# -----------------------------------------------------------------------------
+services:
+  - name: web
+    github:
+      repo: iciteng/odoo-multi-tenant-ng
+      branch: main
+      deploy_on_push: true
+    dockerfile_path: 19.0/Dockerfile
+    source_dir: 19.0
+    http_port: 8069
+
+    # Resource sizing (adjust based on tenant count)
+    instance_size_slug: professional-xs
+    instance_count: 1
+
+    # Health check
+    health_check:
+      http_path: /web/health
+      initial_delay_seconds: 60
+      period_seconds: 30
+      timeout_seconds: 10
+      success_threshold: 1
+      failure_threshold: 3
+
+    # Environment variables
+    envs:
+      # Database connection (bind to managed PostgreSQL)
+      - key: HOST
+        scope: RUN_TIME
+        value: ${db.HOSTNAME}
+      - key: PORT
+        scope: RUN_TIME
+        value: ${db.PORT}
+      - key: USER
+        scope: RUN_TIME
+        value: ${db.USERNAME}
+      - key: PASSWORD
+        scope: RUN_TIME
+        value: ${db.PASSWORD}
+      - key: DB_SSLMODE
+        scope: RUN_TIME
+        value: require
+
+      # Admin password (set via App Platform secrets)
+      - key: ODOO_ADMIN_PASSWD
+        scope: RUN_TIME
+        type: SECRET
+
+      # DO Spaces configuration (set via App Platform secrets)
+      - key: SPACES_BUCKET
+        scope: RUN_TIME
+        type: SECRET
+      - key: SPACES_ENDPOINT
+        scope: RUN_TIME
+        value: https://nyc3.digitaloceanspaces.com
+      - key: SPACES_ACCESS_KEY
+        scope: RUN_TIME
+        type: SECRET
+      - key: SPACES_SECRET_KEY
+        scope: RUN_TIME
+        type: SECRET
+      - key: SPACES_PREFIX
+        scope: RUN_TIME
+        value: odoo
+
+# -----------------------------------------------------------------------------
+# Managed PostgreSQL Database
+# -----------------------------------------------------------------------------
+databases:
+  - name: db
+    engine: PG
+    version: "15"
+    size: db-s-1vcpu-1gb
+    num_nodes: 1
+
+# -----------------------------------------------------------------------------
+# Domain Configuration
+# -----------------------------------------------------------------------------
+# Wildcard domain for multi-tenant routing
+# Each tenant: tenant-name.your-domain.com -> database "tenant-name"
+domains:
+  - domain: "*.your-domain.com"
+    type: PRIMARY
+    wildcard: true
+  - domain: your-domain.com
+    type: ALIAS
+
+# -----------------------------------------------------------------------------
+# Alerts (optional)
+# -----------------------------------------------------------------------------
+alerts:
+  - rule: DEPLOYMENT_FAILED
+  - rule: DOMAIN_FAILED

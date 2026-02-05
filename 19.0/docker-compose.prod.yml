@@ -1,0 +1,62 @@
+version: '3.8'
+
+# =============================================================================
+# Production docker-compose for local testing of production configuration
+# Uses the same settings as DO App Platform deployment
+# =============================================================================
+
+services:
+  web:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8069:8069"
+      - "8072:8072"
+    environment:
+      # Database connection
+      - HOST=db
+      - PORT=5432
+      - USER=odoo
+      - PASSWORD=odoo
+      - DB_SSLMODE=disable  # No SSL for local PG
+
+      # Admin password (change in real production!)
+      - ODOO_ADMIN_PASSWD=change-me-in-production
+
+      # DO Spaces / S3 configuration (optional for local testing)
+      # Uncomment and fill these to test S3 attachment storage locally
+      # - SPACES_BUCKET=your-bucket-name
+      # - SPACES_ENDPOINT=https://nyc3.digitaloceanspaces.com
+      # - SPACES_ACCESS_KEY=your-access-key
+      # - SPACES_SECRET_KEY=your-secret-key
+      # - SPACES_PREFIX=odoo
+    volumes:
+      - odoo-web-data:/var/lib/odoo
+      - ./addons:/mnt/extra-addons
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8069/web/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=odoo
+      - POSTGRES_PASSWORD=odoo
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - odoo-db-data:/var/lib/postgresql/data/pgdata
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U odoo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  odoo-web-data:
+  odoo-db-data:

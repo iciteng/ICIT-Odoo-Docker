@@ -1,1 +1,24 @@
 .idea
+
+# Environment files
+.env
+*.env.local
+
+# Odoo data (when using local bind mounts)
+data/
+filestore/
+
+# Custom addons (keep .gitkeep)
+19.0/addons/*
+!19.0/addons/.gitkeep
+18.0/addons/*
+!18.0/addons/.gitkeep
+17.0/addons/*
+!17.0/addons/.gitkeep
+
+# Logs
+*.log
+
+# Python
+__pycache__/
+*.py[cod]

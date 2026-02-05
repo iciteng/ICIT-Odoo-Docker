@@ -79,9 +79,12 @@ RUN curl -o odoo.deb -sSL http://nightly.odoo.com/${ODOO_VERSION}/nightly/deb/od
     && apt-get -y install --no-install-recommends ./odoo.deb \
     && rm -rf /var/lib/apt/lists/* odoo.deb
 
-# Copy entrypoint script and Odoo configuration file
+# Install Spaces/S3 client deps (used by fs_attachment_s3)
+RUN python3 -m pip install --no-cache-dir boto3 s3fs
+
+# Copy entrypoint script and production Odoo configuration file
 COPY ./entrypoint.sh /
-COPY ./odoo.conf /etc/odoo/
+COPY ./odoo.prod.conf /etc/odoo/odoo.conf
 
 # Set permissions and Mount /var/lib/odoo to allow restoring filestore and /mnt/extra-addons for users addons
 RUN chown odoo /etc/odoo/odoo.conf \
