@@ -14,7 +14,7 @@ region: nyc
 services:
   - name: web
     github:
-      repo: iciteng/odoo-multi-tenant-ng
+      repo: iciteng/ICIT-Odoo-Docker
       branch: main
       deploy_on_push: true
     dockerfile_path: 19.0/Dockerfile
@@ -78,10 +78,13 @@ services:
 # -----------------------------------------------------------------------------
 # Managed PostgreSQL Database
 # -----------------------------------------------------------------------------
+# NOTE: If you already have an external managed PostgreSQL, remove this
+# databases block and set HOST/PORT/USER/PASSWORD env vars directly above
+# pointing to your existing cluster.
 databases:
   - name: db
     engine: PG
-    version: "15"
+    version: "17"
     size: db-s-1vcpu-1gb
     num_nodes: 1
 

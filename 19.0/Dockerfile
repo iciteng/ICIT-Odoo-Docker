@@ -80,7 +80,7 @@ RUN curl -o odoo.deb -sSL http://nightly.odoo.com/${ODOO_VERSION}/nightly/deb/od
     && rm -rf /var/lib/apt/lists/* odoo.deb
 
 # Install Spaces/S3 client deps (used by fs_attachment_s3)
-RUN python3 -m pip install --no-cache-dir boto3 s3fs
+RUN python3 -m pip install --no-cache-dir --break-system-packages boto3 s3fs
 
 # Copy entrypoint script and production Odoo configuration file
 COPY ./entrypoint.sh /

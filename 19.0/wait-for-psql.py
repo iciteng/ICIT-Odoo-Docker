@@ -19,14 +19,11 @@ if __name__ == '__main__':
     while (time.time() - start_time) < args.timeout:
         try:
             conn = psycopg2.connect(user=args.db_user, host=args.db_host, port=args.db_port, password=args.db_password, dbname='postgres')
-            error = ''
+            conn.close()
             break
         except psycopg2.OperationalError as e:
             error = e
-        else:
-            conn.close()
-        time.sleep(1)
-
-    if error:
+            time.sleep(1)
+    else:
         print("Database connection failure: %s" % error, file=sys.stderr)
         sys.exit(1)

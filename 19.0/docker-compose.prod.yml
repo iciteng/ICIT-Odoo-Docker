@@ -43,7 +43,7 @@ services:
       start_period: 60s
 
   db:
-    image: postgres:15
+    image: postgres:17
     environment:
       - POSTGRES_DB=postgres
       - POSTGRES_USER=odoo
