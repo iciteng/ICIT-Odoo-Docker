@@ -84,6 +84,7 @@ RUN python3 -m pip install --no-cache-dir --break-system-packages boto3 s3fs
 
 # Copy entrypoint script and production Odoo configuration file
 COPY ./entrypoint.sh /
+RUN chmod +x /entrypoint.sh
 COPY ./odoo.prod.conf /etc/odoo/odoo.conf
 
 # Set permissions and Mount /var/lib/odoo to allow restoring filestore and /mnt/extra-addons for users addons
