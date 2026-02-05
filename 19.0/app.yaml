@@ -14,7 +14,7 @@ region: nyc
 services:
   - name: web
     github:
-      repo: iciteng/docker-vanilla
+      repo: iciteng/ICIT-Odoo-Docker
       branch: silly-sanderson
       deploy_on_push: true
     dockerfile_path: 19.0/Dockerfile
