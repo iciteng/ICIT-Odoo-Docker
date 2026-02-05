@@ -1,0 +1,206 @@
+// =============================================================================
+// ICIT Brand Colors
+// Primary: #2fa7e2 (blue)   Accent: #ff6d00 (orange — used sparingly)
+// =============================================================================
+$icit-blue: #2fa7e2;
+$icit-orange: #ff6d00;
+$icit-blue-dark: #1a6f9e;
+$icit-blue-light: #5bbfef;
+
+// Dark gradient background — deep blue tones
+.icit_login_bg {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #041c2c 0%, #0a2e4a 50%, #0d3b5e 100%) !important;
+}
+
+// Vertically + horizontally center the card
+.icit_login_wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem 1rem;
+}
+
+// Glassmorphism card
+.icit_login_card {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(255, 255, 255, 0.06) !important;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba($icit-blue, 0.2) !important;
+  border-radius: 1rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  color: rgba(255, 255, 255, 0.85);
+
+  // Card body — override Bootstrap/Odoo white background
+  .card-body {
+    background: transparent !important;
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  // All text defaults to light
+  p, span, div, strong, em {
+    color: inherit;
+  }
+
+  // Links — soft blue, orange only on hover
+  a {
+    color: rgba($icit-blue-light, 0.85);
+
+    &:hover {
+      color: $icit-orange;
+    }
+  }
+
+  // Light text labels
+  label,
+  .form-label {
+    color: rgba(255, 255, 255, 0.85) !important;
+  }
+
+  // Borders — subtle blue
+  .border-bottom {
+    border-color: rgba($icit-blue, 0.2) !important;
+  }
+
+  .border-top {
+    border-color: rgba($icit-blue, 0.2) !important;
+  }
+
+  // Inputs
+  .form-control {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba($icit-blue, 0.25) !important;
+    color: #fff !important;
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    &:focus {
+      background: rgba(255, 255, 255, 0.12) !important;
+      border-color: $icit-orange !important;
+      box-shadow: 0 0 0 0.2rem rgba($icit-orange, 0.15);
+      color: #fff !important;
+    }
+  }
+
+  // Primary button — solid blue, orange hover
+  .btn-primary {
+    background: $icit-blue !important;
+    border: none !important;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding: 0.6rem;
+    color: #fff !important;
+    transition: background 0.2s ease;
+
+    &:hover {
+      background: $icit-orange !important;
+    }
+
+    &:active,
+    &:focus {
+      background: $icit-orange !important;
+      box-shadow: 0 0 0 0.2rem rgba($icit-orange, 0.25) !important;
+    }
+  }
+
+  // Link buttons
+  .btn-link {
+    color: rgba($icit-blue-light, 0.85) !important;
+
+    &:hover {
+      color: $icit-orange !important;
+    }
+  }
+
+  // Show password toggle
+  .o_show_password {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba($icit-blue, 0.25) !important;
+    color: rgba(255, 255, 255, 0.6) !important;
+
+    &:hover {
+      color: $icit-orange !important;
+    }
+  }
+
+  // Alerts
+  .alert-danger {
+    background: rgba(220, 53, 69, 0.2) !important;
+    border-color: rgba(220, 53, 69, 0.3) !important;
+    color: #f8d7da !important;
+  }
+
+  .alert-success {
+    background: rgba(25, 135, 84, 0.2) !important;
+    border-color: rgba(25, 135, 84, 0.3) !important;
+    color: #d1e7dd !important;
+  }
+
+  // OAuth / Passkey section
+  .o_login_auth,
+  .oe_login_buttons {
+    .text-muted,
+    em {
+      color: rgba(255, 255, 255, 0.4) !important;
+    }
+
+    .list-group-item {
+      background: rgba(255, 255, 255, 0.06) !important;
+      border-color: rgba($icit-blue, 0.15) !important;
+      color: rgba(255, 255, 255, 0.85) !important;
+
+      &:hover {
+        background: rgba($icit-orange, 0.08) !important;
+        border-color: rgba($icit-orange, 0.25) !important;
+        color: #fff !important;
+      }
+    }
+  }
+}
+
+// Footer
+.icit_login_footer {
+  color: rgba(255, 255, 255, 0.4) !important;
+
+  .icit_powered_by {
+    font-size: 0.75rem;
+  }
+
+  .icit_footer_sep {
+    opacity: 0.3;
+  }
+
+  .icit_footer_logo {
+    display: inline-flex;
+    align-items: center;
+    opacity: 0.5;
+    transition: opacity 0.2s ease;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+
+  .icit_odoo_logo {
+    height: 18px;
+    width: auto;
+  }
+
+  .icit_icit_logo {
+    height: 22px;
+    width: auto;
+  }
+
+  a {
+    color: rgba($icit-blue-light, 0.6) !important;
+
+    &:hover {
+      color: $icit-orange !important;
+    }
+  }
+}

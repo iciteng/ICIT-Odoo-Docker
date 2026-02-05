@@ -1,0 +1,68 @@
+<t>
+    <!-- ============================================================
+         Allowlist Modal — ICIT SaaS Guard
+         ============================================================ -->
+    <div class="modal fade icit-allowlist-modal" id="icit-allowlist-modal" role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">
+                        <i class="fa fa-list-alt me-2"></i>
+                        Module Allowlist — <span id="icit-allowlist-dbname"></span>
+                    </h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Mode selector -->
+                    <div class="icit-allowlist-mode mb-3">
+                        <label class="d-block mb-2" style="font-size:.85rem;font-weight:600;">
+                            <i class="fa fa-shield me-1"></i> Restriction Mode
+                        </label>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="icit-al-mode" id="icit-al-disabled" value="disabled" autocomplete="off" />
+                            <label class="btn btn-secondary" for="icit-al-disabled">
+                                <i class="fa fa-unlock me-1"></i> Disabled
+                            </label>
+                            <input type="radio" class="btn-check" name="icit-al-mode" id="icit-al-allowlist" value="allowlist" autocomplete="off" />
+                            <label class="btn btn-secondary" for="icit-al-allowlist">
+                                <i class="fa fa-check-circle me-1"></i> Allowlist
+                            </label>
+                            <input type="radio" class="btn-check" name="icit-al-mode" id="icit-al-denylist" value="denylist" autocomplete="off" />
+                            <label class="btn btn-secondary" for="icit-al-denylist">
+                                <i class="fa fa-ban me-1"></i> Denylist
+                            </label>
+                        </div>
+                        <small class="text-muted d-block mt-1" id="icit-al-mode-help" style="font-size:.75rem;"></small>
+                    </div>
+
+                    <!-- Module search (inside modal) -->
+                    <div id="icit-al-modules-section" style="display:none;">
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text"><i class="fa fa-search"></i></span>
+                            <input type="text" id="icit-al-search" class="form-control" placeholder="Filter modules..." />
+                        </div>
+
+                        <!-- Quick actions -->
+                        <div class="d-flex gap-2 mb-2">
+                            <button type="button" class="btn btn-sm btn-secondary" id="icit-al-select-all">Select All</button>
+                            <button type="button" class="btn btn-sm btn-secondary" id="icit-al-select-none">Select None</button>
+                            <button type="button" class="btn btn-sm btn-secondary" id="icit-al-select-apps">Apps Only</button>
+                            <span class="ms-auto text-muted" style="font-size:.75rem;line-height:2;" id="icit-al-selected-count"></span>
+                        </div>
+
+                        <!-- Module checklist -->
+                        <div id="icit-al-module-list" class="icit-al-module-list">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="icit-al-save">
+                        <i class="fa fa-save me-1"></i> Save Allowlist
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</t>

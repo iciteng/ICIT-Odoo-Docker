@@ -14,8 +14,8 @@ region: nyc
 services:
   - name: web
     github:
-      repo: iciteng/ICIT-Odoo-Docker
-      branch: main
+      repo: iciteng/docker-vanilla
+      branch: silly-sanderson
       deploy_on_push: true
     dockerfile_path: 19.0/Dockerfile
     source_dir: 19.0
@@ -74,6 +74,11 @@ services:
       - key: SPACES_PREFIX
         scope: RUN_TIME
         value: odoo
+
+      # Admin subdomain for database management guard
+      - key: ADMIN_SUBDOMAIN
+        scope: RUN_TIME
+        value: admin
 
 # -----------------------------------------------------------------------------
 # Managed PostgreSQL Database

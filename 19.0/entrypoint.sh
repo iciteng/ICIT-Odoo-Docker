@@ -36,7 +36,7 @@ if [ -n "${ODOO_ADMIN_PASSWD}" ]; then
 fi
 
 # DB SSL mode in config (supplements PGSSLMODE env var)
-if [ -n "${DB_SSLMODE}" ]; then
+if [ -n "${DB_SSLMODE}" ] && ! grep -q "^db_sslmode" "${ODOO_CONF}"; then
     echo "db_sslmode = ${DB_SSLMODE}" >> "${ODOO_CONF}"
 fi
 

@@ -57,6 +57,14 @@ validate_db_name() {
     echo "Use lowercase letters, numbers, underscore, or dash." >&2
     exit 1
   fi
+  local admin_sub="${ADMIN_SUBDOMAIN:-admin}"
+  local reserved=("${admin_sub}" "postgres" "template0" "template1")
+  for r in "${reserved[@]}"; do
+    if [[ "$db" == "$r" ]]; then
+      echo "Error: '${db}' is a reserved name and cannot be used as a database name." >&2
+      exit 1
+    fi
+  done
 }
 
 terminate_connections() {

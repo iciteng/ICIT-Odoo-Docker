@@ -10,13 +10,14 @@ services:
     volumes:
       - odoo-data:/var/lib/odoo
       - ./addons:/mnt/extra-addons
-      - ./odoo.dev.conf:/etc/odoo/odoo.conf:ro
+      - ./odoo.dev.conf:/etc/odoo/odoo.conf
     environment:
       - HOST=db
       - PORT=5432
       - USER=${POSTGRES_USER:-odoo}
       - PASSWORD=${POSTGRES_PASSWORD:-odoo}
       - DB_SSLMODE=${DB_SSLMODE:-disable}
+      - ADMIN_SUBDOMAIN=${ADMIN_SUBDOMAIN:-admin}
     restart: unless-stopped
 
   db:

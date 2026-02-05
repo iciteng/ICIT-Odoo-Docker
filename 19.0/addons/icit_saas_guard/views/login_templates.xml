@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- =================================================================
+         ICIT branded login — standalone dark glassmorphism page.
+         Priority 99 ensures NO tenant-installed module can override this.
+         Replaces either web.frontend_layout or website.layout.
+         ================================================================= -->
+    <template id="login_layout" inherit_id="web.login_layout" name="ICIT Login Layout" priority="99">
+        <xpath expr="//t[@t-call]" position="replace">
+            <t t-call="web.frontend_layout">
+                <t t-set="html_data" t-value="{'style': 'height: 100%;'}"/>
+                <t t-set="body_classname" t-value="'icit_login_bg'"/>
+                <t t-set="no_header" t-value="True"/>
+                <t t-set="no_footer" t-value="True"/>
+
+                <div class="icit_login_wrap">
+                    <div class="card border-0 mx-auto icit_login_card o_database_list">
+                        <div class="card-body">
+                            <div class="text-center pb-3 border-bottom mb-4">
+                                <img t-attf-src="/web/binary/company_logo{{ '?dbname='+db if db else '' }}" alt="Logo" style="max-height:120px; max-width: 100%; width:auto"/>
+                            </div>
+                            <t t-out="0"/>
+                            <div class="text-center small mt-4 pt-3 border-top icit_login_footer d-flex align-items-center justify-content-center gap-2" t-if="not disable_footer">
+                                <t t-if="is_admin">
+                                    <a class="border-end pe-2 me-1" href="/web/database/manager">Manage Databases</a>
+                                </t>
+                                <span class="icit_powered_by">Powered by</span>
+                                <a href="https://www.odoo.com?utm_source=db&amp;utm_medium=auth" target="_blank" class="icit_footer_logo">
+                                    <img src="/icit_saas_guard/static/src/img/odoo_logo_inverted.svg" alt="Odoo" class="icit_odoo_logo"/>
+                                </a>
+                                <span class="icit_footer_sep">|</span>
+                                <a href="https://www.icitsolutions.com" target="_blank" class="icit_footer_logo">
+                                    <img src="/icit_saas_guard/static/src/img/icit_logo.png" alt="ICIT Solutions" class="icit_icit_logo"/>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </xpath>
+    </template>
+
+    <!-- =================================================================
+         ICIT branded 404 — dark-themed error page for frontend contexts.
+         Priority 99 ensures tenant modules cannot override this.
+         Only renders when DB context exists (frontend routes).
+         Guard routes use standalone HTML (no DB needed).
+         ================================================================= -->
+    <template id="icit_404" inherit_id="http_routing.404" name="ICIT 404 Page" priority="99">
+        <xpath expr="//t[@t-call='web.frontend_layout']" position="replace">
+            <t t-call="web.frontend_layout">
+                <t t-set="body_classname" t-value="'icit_login_bg'"/>
+                <t t-set="no_header" t-value="True"/>
+                <t t-set="no_footer" t-value="True"/>
+
+                <div class="icit_login_wrap">
+                    <div class="card border-0 mx-auto icit_login_card" style="max-width:500px">
+                        <div class="card-body text-center py-5">
+                            <div class="mb-3">
+                                <img src="/icit_saas_guard/static/src/img/icit_logo.png" alt="ICIT" style="max-height:36px;opacity:.7"/>
+                            </div>
+                            <h1 style="font-size:4.5rem; font-weight:700; color:#2fa7e2; line-height:1">404</h1>
+                            <h2 class="mb-3" style="font-size:1.2rem; font-weight:500">Page Not Found</h2>
+                            <p class="mb-4" style="color:rgba(255,255,255,0.45); font-size:.9rem">
+                                The page you're looking for doesn't exist or has been moved.
+                            </p>
+                            <a href="/web/login" class="btn btn-primary px-4">Back to Login</a>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </xpath>
+    </template>
+
+</odoo>

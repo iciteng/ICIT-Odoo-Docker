@@ -8,9 +8,10 @@
 data/
 filestore/
 
-# Custom addons (keep .gitkeep)
+# Custom addons (keep .gitkeep + tracked addons)
 19.0/addons/*
 !19.0/addons/.gitkeep
+!19.0/addons/icit_saas_guard/
 18.0/addons/*
 !18.0/addons/.gitkeep
 17.0/addons/*

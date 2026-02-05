@@ -90,6 +90,10 @@ COPY ./odoo.prod.conf /etc/odoo/odoo.conf
 RUN chown odoo /etc/odoo/odoo.conf \
     && mkdir -p /mnt/extra-addons \
     && chown -R odoo /mnt/extra-addons
+
+# Copy custom addons (baked into image for production)
+COPY --chown=odoo:odoo ./addons /mnt/extra-addons
+
 VOLUME ["/var/lib/odoo", "/mnt/extra-addons"]
 
 # Expose Odoo services

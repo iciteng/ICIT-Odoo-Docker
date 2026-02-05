@@ -1,0 +1,1077 @@
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <title>ICIT Ops Dashboard</title>
+    <link rel="shortcut icon" href="/web/static/img/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="/web/static/src/libs/fontawesome/css/font-awesome.css" />
+    <link rel="stylesheet" href="/web/static/lib/bootstrap/dist/css/bootstrap.css" />
+    <script src="/web/static/lib/bootstrap/js/dist/util/index.js" ></script>
+    <script src="/web/static/lib/bootstrap/js/dist/dom/data.js" ></script>
+    <script src="/web/static/lib/bootstrap/js/dist/dom/event-handler.js" ></script>
+    <script src="/web/static/lib/bootstrap/js/dist/dom/manipulator.js" ></script>
+    <script src="/web/static/lib/bootstrap/js/dist/dom/selector-engine.js" ></script>
+    <script src="/web/static/lib/bootstrap/js/dist/util/config.js" ></script>
+    <script src="/web/static/lib/bootstrap/js/dist/util/component-functions.js" ></script>
+    <script src="/web/static/lib/bootstrap/js/dist/util/backdrop.js" ></script>
+    <script src="/web/static/lib/bootstrap/js/dist/util/focustrap.js" ></script>
+    <script src="/web/static/lib/bootstrap/js/dist/util/scrollbar.js" ></script>
+    <script src="/web/static/lib/bootstrap/js/dist/base-component.js" ></script>
+    <script src="/web/static/lib/bootstrap/js/dist/modal.js" ></script>
+    <script src="/web/static/src/public/database_manager.js" ></script>
+    <script src="/icit_saas_guard/static/src/public/apps_manager.js" ></script>
+    <style>
+        /* ============================================================
+           ICIT SaaS Guard — Ops Dashboard Theme
+           ============================================================ */
+        :root {
+            --icit-blue: #2fa7e2;
+            --icit-orange: #ff6d00;
+            --icit-blue-dark: #1a6f9e;
+            --icit-blue-light: #5bbfef;
+            --glass-bg: rgba(255,255,255,.06);
+            --glass-border: rgba(47,167,226,.2);
+            --text-primary: rgba(255,255,255,.85);
+            --text-secondary: rgba(255,255,255,.45);
+            --input-bg: rgba(255,255,255,.08);
+            --input-border: rgba(47,167,226,.25);
+            --icit-green: #22c55e;
+            --icit-red: #ef4444;
+            --icit-yellow: #eab308;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #041c2c 0%, #0a2e4a 50%, #0d3b5e 100%);
+            color: var(--text-primary);
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+
+        a { text-decoration: none; color: var(--icit-blue-light); }
+        a:hover { color: var(--icit-orange); }
+
+        /* Container — wider for App Manager */
+        .container { max-width: 860px; transition: max-width .3s ease; }
+        .container.icit-wide { max-width: 1060px; }
+
+        /* Logo */
+        .icit-dashboard-logo {
+            max-height: 48px;
+            display: block;
+            margin: 0 auto 1.5rem;
+            opacity: .8;
+        }
+
+        .icit-dashboard-title {
+            text-align: center;
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            font-weight: 400;
+        }
+
+        /* Glass panel */
+        .icit-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--glass-border);
+            border-radius: 1rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,.4);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        /* ============================================================
+           Tab Navigation
+           ============================================================ */
+        .icit-tabs {
+            display: flex;
+            gap: .25rem;
+            margin-bottom: 0;
+            padding: 0 .25rem;
+        }
+        .icit-tab {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem;
+            padding: .65rem 1rem;
+            background: rgba(255,255,255,.03);
+            border: 1px solid transparent;
+            border-bottom: none;
+            border-radius: .75rem .75rem 0 0;
+            color: var(--text-secondary);
+            font-size: .85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all .2s ease;
+            user-select: none;
+        }
+        .icit-tab:hover {
+            background: rgba(255,255,255,.05);
+            color: var(--text-primary);
+        }
+        .icit-tab.active {
+            background: var(--glass-bg);
+            border-color: var(--glass-border);
+            color: var(--icit-blue-light);
+            position: relative;
+        }
+        .icit-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--glass-bg);
+        }
+        .icit-tab i { font-size: .9rem; }
+        .icit-tab-badge {
+            font-size: .7rem;
+            background: var(--icit-blue);
+            color: #fff;
+            padding: .1rem .45rem;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        /* Tab content panel — connects to tabs visually */
+        .icit-tab-panel {
+            border-radius: 0 0 1rem 1rem;
+        }
+        .icit-tab-pane { display: none; }
+        .icit-tab-pane.active { display: block; }
+
+        /* ============================================================
+           Alerts
+           ============================================================ */
+        .alert-danger {
+            background: rgba(220,53,69,.15) !important;
+            border-color: rgba(220,53,69,.3) !important;
+            color: #f8d7da !important;
+        }
+        .alert-warning {
+            background: rgba(255,193,7,.1) !important;
+            border-color: rgba(255,193,7,.25) !important;
+            color: #fff3cd !important;
+        }
+        .alert-warning a { color: var(--icit-orange); text-decoration: underline; }
+
+        /* ============================================================
+           Database list items
+           ============================================================ */
+        .list-group-item {
+            background: rgba(255,255,255,.04) !important;
+            border-color: var(--glass-border) !important;
+            color: var(--text-primary) !important;
+            transition: background .15s;
+        }
+        .list-group-item:hover {
+            background: rgba(47,167,226,.08) !important;
+        }
+        .list-group-item a {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+        .list-group-item a:hover { color: var(--icit-blue-light); }
+
+        /* ============================================================
+           Buttons
+           ============================================================ */
+        .btn-primary {
+            background: var(--icit-blue) !important;
+            border-color: var(--icit-blue) !important;
+            color: #fff !important;
+            font-weight: 600;
+            transition: background .2s;
+        }
+        .btn-primary:hover, .btn-primary:focus {
+            background: var(--icit-orange) !important;
+            border-color: var(--icit-orange) !important;
+        }
+        .btn-secondary {
+            background: rgba(255,255,255,.08) !important;
+            border-color: var(--glass-border) !important;
+            color: var(--text-primary) !important;
+        }
+        .btn-secondary:hover {
+            background: rgba(255,255,255,.15) !important;
+            color: #fff !important;
+        }
+        .btn-secondary.active {
+            background: rgba(47,167,226,.15) !important;
+            border-color: var(--icit-blue) !important;
+            color: var(--icit-blue-light) !important;
+        }
+        .btn-danger {
+            background: rgba(220,53,69,.2) !important;
+            border-color: rgba(220,53,69,.4) !important;
+            color: #f8d7da !important;
+        }
+        .btn-danger:hover {
+            background: rgba(220,53,69,.4) !important;
+        }
+        .btn-link {
+            color: var(--icit-blue-light) !important;
+        }
+        .btn-link:hover { color: var(--icit-orange) !important; }
+        .btn-close { filter: invert(1) grayscale(1) brightness(2); }
+
+        /* ============================================================
+           Modals
+           ============================================================ */
+        .modal-content {
+            background: linear-gradient(135deg, #0b2a40 0%, #0e3553 100%) !important;
+            border: 1px solid var(--glass-border) !important;
+            border-radius: .75rem;
+            color: var(--text-primary);
+        }
+        .modal-header {
+            border-bottom-color: var(--glass-border) !important;
+        }
+        .modal-footer {
+            border-top-color: var(--glass-border) !important;
+        }
+        .modal-title { color: #fff; font-weight: 600; }
+
+        /* ============================================================
+           Form controls
+           ============================================================ */
+        .form-control, .form-select {
+            background: var(--input-bg) !important;
+            border-color: var(--input-border) !important;
+            color: #fff !important;
+        }
+        .form-control:focus, .form-select:focus {
+            background: rgba(255,255,255,.12) !important;
+            border-color: var(--icit-orange) !important;
+            box-shadow: 0 0 0 .2rem rgba(255,109,0,.15) !important;
+            color: #fff !important;
+        }
+        .form-control::placeholder { color: var(--text-secondary); }
+        .form-control[readonly] {
+            background: rgba(255,255,255,.04) !important;
+            opacity: .7;
+        }
+
+        label, .col-form-label { color: var(--text-primary) !important; }
+
+        .form-check-input {
+            background-color: var(--input-bg);
+            border-color: var(--input-border);
+        }
+        .form-check-input:checked {
+            background-color: var(--icit-blue);
+            border-color: var(--icit-blue);
+        }
+        .form-check-label { color: var(--text-primary); }
+
+        /* Eye icon for password */
+        .input-group-text, .o_little_eye {
+            background: var(--input-bg) !important;
+            border-color: var(--input-border) !important;
+            color: var(--text-secondary) !important;
+            cursor: pointer;
+        }
+        .o_little_eye:hover { color: var(--icit-orange) !important; }
+
+        .text-muted { color: var(--text-secondary) !important; }
+        .text-warning { color: #ffc107 !important; }
+
+        /* Generated master pwd styles */
+        .generated_master_pwd { color: var(--icit-orange); font-size: 1.1rem; }
+
+        /* ============================================================
+           Footer
+           ============================================================ */
+        .icit-footer {
+            text-align: center;
+            font-size: .75rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: .5rem;
+            margin-top: .5rem;
+        }
+        .icit-footer img { height: 16px; opacity: .5; }
+        .icit-footer img:hover { opacity: 1; }
+        .icit-footer span { opacity: .35; }
+        .icit-footer a { color: var(--text-secondary); }
+        .icit-footer a:hover { color: var(--icit-orange); }
+
+        /* Nav link back to login */
+        .icit-nav {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        .icit-nav a {
+            font-size: .85rem;
+            color: var(--text-secondary);
+        }
+        .icit-nav a:hover { color: var(--icit-blue-light); }
+
+        /* ============================================================
+           App Manager — Auth Panel
+           ============================================================ */
+        .icit-apps-auth {
+            text-align: center;
+            padding: 2rem 1rem;
+        }
+        .icit-apps-auth-icon {
+            font-size: 2.5rem;
+            color: var(--icit-blue);
+            margin-bottom: 1rem;
+            opacity: .6;
+        }
+        .icit-apps-auth-text {
+            color: var(--text-secondary);
+            font-size: .9rem;
+            margin-bottom: 1.5rem;
+        }
+        .icit-apps-auth-form {
+            max-width: 320px;
+            margin: 0 auto;
+        }
+
+        /* ============================================================
+           App Manager — Toolbar
+           ============================================================ */
+        .icit-apps-toolbar {
+            display: flex;
+            gap: .75rem;
+            align-items: flex-end;
+            margin-bottom: .75rem;
+            flex-wrap: wrap;
+        }
+        .icit-apps-db-selector {
+            flex: 1;
+            min-width: 180px;
+        }
+        .icit-apps-db-selector label {
+            font-size: .75rem;
+            color: var(--text-secondary) !important;
+            margin-bottom: .25rem;
+            display: block;
+        }
+        .icit-apps-search {
+            flex: 1;
+            min-width: 160px;
+        }
+
+        /* ============================================================
+           App Manager — Filters
+           ============================================================ */
+        .icit-apps-filters {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            margin-bottom: .75rem;
+            flex-wrap: wrap;
+        }
+        .icit-apps-toggles {
+            margin-left: auto;
+        }
+        .icit-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            cursor: pointer;
+            font-size: .8rem;
+            color: var(--text-secondary);
+        }
+        .icit-toggle input[type="checkbox"] {
+            accent-color: var(--icit-blue);
+        }
+        .icit-toggle-label { user-select: none; }
+        .icit-badge {
+            font-size: .65rem;
+            background: rgba(255,255,255,.1);
+            padding: .1rem .4rem;
+            border-radius: 8px;
+            margin-left: .25rem;
+        }
+
+        /* ============================================================
+           App Manager — Bulk Actions Bar
+           ============================================================ */
+        .icit-apps-bulk-bar {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            padding: .5rem .75rem;
+            background: rgba(47,167,226,.08);
+            border: 1px solid var(--glass-border);
+            border-radius: .5rem;
+            margin-bottom: .75rem;
+            font-size: .8rem;
+        }
+        .icit-apps-bulk-bar span {
+            color: var(--icit-blue-light);
+            font-weight: 500;
+        }
+
+        /* ============================================================
+           App Manager — Module List
+           ============================================================ */
+        .icit-apps-modules {
+            max-height: 520px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(47,167,226,.3) transparent;
+        }
+        .icit-apps-modules::-webkit-scrollbar { width: 6px; }
+        .icit-apps-modules::-webkit-scrollbar-track { background: transparent; }
+        .icit-apps-modules::-webkit-scrollbar-thumb {
+            background: rgba(47,167,226,.3);
+            border-radius: 3px;
+        }
+        .icit-apps-empty {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-secondary);
+        }
+        .icit-apps-empty i {
+            font-size: 2.5rem;
+            margin-bottom: .75rem;
+            display: block;
+            opacity: .3;
+        }
+        .icit-apps-empty p {
+            font-size: .9rem;
+            margin: 0;
+        }
+
+        /* Category group */
+        .icit-cat-group { margin-bottom: .5rem; }
+        .icit-cat-header {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            padding: .35rem .5rem;
+            font-size: .75rem;
+            font-weight: 600;
+            color: var(--icit-blue-light);
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            cursor: pointer;
+            user-select: none;
+            border-radius: .25rem;
+            transition: background .15s;
+        }
+        .icit-cat-header:hover { background: rgba(255,255,255,.03); }
+        .icit-cat-header i.fa-chevron-down,
+        .icit-cat-header i.fa-chevron-right {
+            font-size: .6rem;
+            width: 10px;
+            transition: transform .2s;
+        }
+        .icit-cat-count {
+            font-weight: 400;
+            color: var(--text-secondary);
+            font-size: .7rem;
+        }
+
+        /* Module row */
+        .icit-mod-row {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            padding: .45rem .5rem .45rem 1.5rem;
+            border-radius: .35rem;
+            transition: background .15s;
+            position: relative;
+        }
+        .icit-mod-row:hover { background: rgba(255,255,255,.03); }
+        .icit-mod-row.icit-blocked { opacity: .5; }
+
+        .icit-mod-check {
+            flex-shrink: 0;
+            width: 16px;
+            height: 16px;
+            display: none;
+        }
+        .icit-bulk-mode .icit-mod-check {
+            display: block;
+        }
+        .icit-mod-icon {
+            flex-shrink: 0;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(47,167,226,.08);
+            border-radius: .35rem;
+            color: var(--icit-blue);
+            font-size: .8rem;
+        }
+        .icit-mod-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .icit-mod-name {
+            font-size: .82rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .icit-mod-technical {
+            font-size: .7rem;
+            color: var(--text-secondary);
+            font-family: monospace;
+        }
+        .icit-mod-summary {
+            font-size: .72rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* State badges */
+        .icit-state {
+            flex-shrink: 0;
+            font-size: .65rem;
+            font-weight: 600;
+            padding: .15rem .5rem;
+            border-radius: 10px;
+            text-transform: uppercase;
+            letter-spacing: .03em;
+        }
+        .icit-state-installed {
+            background: rgba(34,197,94,.15);
+            color: var(--icit-green);
+        }
+        .icit-state-uninstalled {
+            background: rgba(255,255,255,.06);
+            color: var(--text-secondary);
+        }
+        .icit-state-to-install,
+        .icit-state-to-upgrade,
+        .icit-state-to-remove {
+            background: rgba(234,179,8,.15);
+            color: var(--icit-yellow);
+        }
+
+        /* Action buttons */
+        .icit-mod-actions {
+            flex-shrink: 0;
+            display: flex;
+            gap: .25rem;
+        }
+        .icit-mod-actions .btn {
+            font-size: .7rem;
+            padding: .2rem .5rem;
+        }
+
+        /* Lock icon (allowlist blocked) */
+        .icit-lock-icon {
+            color: var(--icit-orange);
+            font-size: .75rem;
+            margin-right: .25rem;
+        }
+
+        /* Loading spinner overlay on module row */
+        .icit-mod-loading {
+            position: absolute;
+            inset: 0;
+            background: rgba(4,28,44,.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: .35rem;
+            z-index: 2;
+        }
+        .icit-spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(47,167,226,.2);
+            border-top-color: var(--icit-blue);
+            border-radius: 50%;
+            animation: icit-spin .6s linear infinite;
+        }
+        @keyframes icit-spin { to { transform: rotate(360deg); } }
+
+        /* ============================================================
+           Toast Notifications
+           ============================================================ */
+        .icit-toast-container {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+            max-width: 360px;
+        }
+        .icit-toast {
+            padding: .65rem 1rem;
+            border-radius: .5rem;
+            font-size: .82rem;
+            color: #fff;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 4px 16px rgba(0,0,0,.4);
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            animation: icit-toast-in .25s ease;
+        }
+        .icit-toast.icit-toast-out {
+            animation: icit-toast-out .2s ease forwards;
+        }
+        .icit-toast-success {
+            background: rgba(34,197,94,.85);
+            border: 1px solid rgba(34,197,94,.5);
+        }
+        .icit-toast-error {
+            background: rgba(239,68,68,.85);
+            border: 1px solid rgba(239,68,68,.5);
+        }
+        .icit-toast-info {
+            background: rgba(47,167,226,.85);
+            border: 1px solid rgba(47,167,226,.5);
+        }
+        .icit-toast i { font-size: .9rem; flex-shrink: 0; }
+        .icit-toast-msg { flex: 1; }
+        .icit-toast-close {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,.6);
+            cursor: pointer;
+            font-size: .75rem;
+            padding: 0 .25rem;
+        }
+        .icit-toast-close:hover { color: #fff; }
+
+        @keyframes icit-toast-in {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes icit-toast-out {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(20px); }
+        }
+
+        /* ============================================================
+           Allowlist Modal
+           ============================================================ */
+        .icit-al-module-list {
+            max-height: 340px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(47,167,226,.3) transparent;
+            border: 1px solid var(--glass-border);
+            border-radius: .5rem;
+            padding: .25rem;
+        }
+        .icit-al-module-list::-webkit-scrollbar { width: 6px; }
+        .icit-al-module-list::-webkit-scrollbar-track { background: transparent; }
+        .icit-al-module-list::-webkit-scrollbar-thumb {
+            background: rgba(47,167,226,.3);
+            border-radius: 3px;
+        }
+        .icit-al-item {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            padding: .3rem .5rem;
+            border-radius: .25rem;
+            transition: background .1s;
+            cursor: pointer;
+        }
+        .icit-al-item:hover { background: rgba(255,255,255,.04); }
+        .icit-al-item label {
+            flex: 1;
+            cursor: pointer;
+            font-size: .8rem;
+            margin: 0;
+        }
+        .icit-al-item .icit-al-tech {
+            font-size: .7rem;
+            color: var(--text-secondary);
+            font-family: monospace;
+        }
+        .btn-check:checked + .btn-secondary {
+            background: rgba(47,167,226,.2) !important;
+            border-color: var(--icit-blue) !important;
+            color: var(--icit-blue-light) !important;
+        }
+
+        /* ============================================================
+           App Manager — Loading state
+           ============================================================ */
+        .icit-apps-loading {
+            text-align: center;
+            padding: 2rem;
+        }
+        .icit-apps-loading .icit-spinner {
+            width: 28px;
+            height: 28px;
+            margin: 0 auto .75rem;
+        }
+        .icit-apps-loading p {
+            color: var(--text-secondary);
+            font-size: .85rem;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="icit-dashboard-container">
+        <!-- Logo + title -->
+        <img src="/icit_saas_guard/static/src/img/icit_logo.png" alt="ICIT Solutions" class="icit-dashboard-logo"/>
+        <p class="icit-dashboard-title">Ops Dashboard</p>
+
+        <!-- Navigation -->
+        <div class="icit-nav">
+            <a href="/web/login"><i class="fa fa-arrow-left"></i> Back to Login</a>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- Tab Navigation                                                -->
+        <!-- ============================================================ -->
+        <div class="icit-tabs">
+            <div class="icit-tab active" data-tab="databases">
+                <i class="fa fa-database"></i>
+                Databases
+                <t t-if="databases">
+                    <span class="icit-tab-badge" t-out="len(databases)" />
+                </t>
+            </div>
+            <div class="icit-tab" data-tab="apps">
+                <i class="fa fa-th-large"></i>
+                App Manager
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- Tab Content Panel                                             -->
+        <!-- ============================================================ -->
+        <div class="icit-panel icit-tab-panel">
+
+            <!-- === Databases Tab === -->
+            <div class="icit-tab-pane active o_database_list" data-tab-pane="databases">
+                <t t-if="not list_db">
+                    <div class="alert alert-danger text-center mb-0">
+                        The database manager has been disabled by the administrator.
+                    </div>
+                </t>
+                <t t-elif="insecure and databases">
+                    <div class="alert alert-warning">
+                        <i class="fa fa-exclamation-triangle"></i>
+                        Your database manager is <strong>not protected</strong>.<br/>
+                        Please <a href="#" data-bs-toggle="modal" data-bs-target=".o_database_master">set a master password</a> to secure it.
+                    </div>
+                </t>
+                <t t-if="error">
+                    <div class="alert alert-danger" t-out="error"></div>
+                </t>
+                <t t-if="list_db and databases">
+                    <div class="list-group">
+                        <t t-foreach="databases" t-as="db">
+                            <div class="list-group-item d-flex align-items-center">
+                                <a t-attf-href="/odoo?db={{ db }}" class="d-block flex-grow-1">
+                                    <t t-if="db in incompatible_databases">
+                                        <i class="icon fa fa-warning float-end text-warning" title="This database may not be compatible"></i>
+                                    </t>
+                                    <i class="fa fa-database fa-fw me-2" style="color:var(--icit-blue);opacity:.6"></i>
+                                    <t t-out="db" />
+                                </a>
+                                <t t-if="manage">
+                                    <div class="btn-group btn-group-sm float-end">
+                                        <button type="button" t-att-data-db="db" data-bs-target=".o_database_backup" class="o_database_action btn btn-primary">
+                                            <i class="fa fa-floppy-o fa-fw"></i> Backup
+                                        </button>
+                                        <button type="button" t-att-data-db="db" data-bs-target=".o_database_duplicate" class="o_database_action btn btn-secondary">
+                                            <i class="fa fa-files-o fa-fw"></i> Duplicate
+                                        </button>
+                                        <button type="button" t-att-data-db="db" data-bs-target=".o_database_delete" class="o_database_action btn btn-danger">
+                                            <i class="fa fa-trash-o fa-fw"></i> Delete
+                                        </button>
+                                    </div>
+                                </t>
+                            </div>
+                        </t>
+                    </div>
+                    <t t-if="manage">
+                        <div class="d-flex mt-3 gap-2">
+                            <button type="button" data-bs-toggle="modal" data-bs-target=".o_database_create" class="btn btn-primary flex-grow-1">
+                                <i class="fa fa-plus-circle me-1"></i> Create Database
+                            </button>
+                            <button type="button" data-bs-toggle="modal" data-bs-target=".o_database_restore" class="btn btn-secondary flex-grow-1">
+                                <i class="fa fa-upload me-1"></i> Restore Database
+                            </button>
+                            <button type="button" data-bs-toggle="modal" data-bs-target=".o_database_master" class="btn btn-secondary flex-grow-1">
+                                <i class="fa fa-lock me-1"></i> Master Password
+                            </button>
+                        </div>
+                    </t>
+                    <t t-else="">
+                        <div class="text-center mt-3">
+                            <a href="/web/database/manager">Manage databases</a>
+                        </div>
+                    </t>
+                </t>
+                <t t-elif="list_db">
+                    <form role="form" action="/web/database/create" method="post">
+                        <t t-call="create_form" />
+                        <input type="submit" value="Create database" class="btn btn-primary float-start"/>
+                    </form>
+                    <a role="button" data-bs-toggle="modal" data-bs-target=".o_database_restore" class="btn btn-link">or restore a database</a>
+                </t>
+            </div>
+
+            <!-- === App Manager Tab === -->
+            <div class="icit-tab-pane" data-tab-pane="apps">
+                <t t-call="apps_tab" />
+            </div>
+
+        </div>
+
+        <!-- Footer -->
+        <div class="icit-footer">
+            <span>Powered by</span>
+            <a href="https://www.odoo.com" target="_blank">
+                <img src="/icit_saas_guard/static/src/img/odoo_logo_inverted.svg" alt="Odoo"/>
+            </a>
+            <span>|</span>
+            <a href="https://www.icitsolutions.com" target="_blank">
+                <img src="/icit_saas_guard/static/src/img/icit_logo.png" alt="ICIT Solutions"/>
+            </a>
+        </div>
+
+        <!-- Allowlist Modal -->
+        <t t-call="allowlist_modal" />
+
+        <!-- ============================================================ -->
+        <!-- Toast Container (fixed position)                              -->
+        <!-- ============================================================ -->
+        <div id="icit-toast-container" class="icit-toast-container"></div>
+
+        <!-- ============================================================ -->
+        <!-- MODALS — Same structure as Odoo, dark-themed via CSS above   -->
+        <!-- ============================================================ -->
+
+        <!-- Create -->
+        <div class="modal fade o_database_create" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form role="form" action="/web/database/create" method="post">
+                        <div class="modal-header">
+                            <h4 class="modal-title"><i class="fa fa-plus-circle me-2"></i>Create Database</h4>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <t t-call="create_form" />
+                            <small class="text-muted">
+                                To enhance your experience, some data may be sent to Odoo online services. See our <a href="https://www.odoo.com/privacy" target="_blank">Privacy Policy</a>.
+                            </small>
+                        </div>
+                        <div class="modal-footer">
+                            <input type="submit" value="Continue" class="btn btn-primary float-end"/>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Restore -->
+        <div class="modal fade o_database_restore" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title"><i class="fa fa-upload me-2"></i>Restore Database</h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form id="form_restore_db" role="form" action="/web/database/restore" method="post" enctype="multipart/form-data">
+                        <div class="modal-body">
+                            <t t-call="master_input" />
+                            <div class="row mb-3">
+                                <label for="backup_file" class="col-md-4 col-form-label">File</label>
+                                <div class="col-md-8">
+                                    <input id="backup_file" type="file" name="backup_file" class="required form-control"/>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="dbname_restore" class="col-md-4 col-form-label">Database Name</label>
+                                <div class="col-md-8">
+                                    <input id="dbname_restore" type="text" name="name" class="form-control" required="required" t-att-pattern="pattern" title="Only alphanumerical characters, underscore, hyphen and dot are allowed"/>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="neutralize_database_restore" class="col-md-4 col-form-label">Neutralize</label>
+                                <div class="col-md-8">
+                                    <input id="neutralize_database_restore" type="checkbox" name="neutralize_database" class="form-check-input" />
+                                </div>
+                            </div>
+                            <label for="radio_copy_true">This database might have been moved or copied.</label>
+                            <p class="form-text text-muted">
+                                In order to avoid conflicts between databases, Odoo needs to know if this database was moved or copied.<br/>
+                                If you don't know, answer "This database is a copy".
+                            </p>
+                            <div class="form-check">
+                                <input id="radio_copy_true" name="copy" type="radio" class="form-check-input" value="true" checked="1" />
+                                <label for="radio_copy_true" class="form-check-label">This database is a copy</label>
+                            </div>
+                            <div class="form-check">
+                                <input id="radio_copy_false" name="copy" type="radio" class="form-check-input" value="false" />
+                                <label for="radio_copy_false" class="form-check-label">This database was moved</label>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <input type="submit" value="Continue" class="btn btn-primary float-end"/>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Master password -->
+        <div class="modal fade o_database_master" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title"><i class="fa fa-lock me-2"></i>Set Master Password</h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form id="form_change_pwd" role="form" action="/web/database/change_password" method="post">
+                        <div class="modal-body">
+                            <p>The master password is required to create, delete, dump or restore databases.</p>
+                            <t t-set="set_master_pwd" t-value="True" />
+                            <t t-call="master_input" />
+                            <div class="row mb-3">
+                                <label for="master_pwd_new" class="col-md-5 col-form-label">New Master Password</label>
+                                <div class="col-md-7">
+                                    <div class="input-group">
+                                        <input id="master_pwd_new" type="password" name="master_pwd_new" class="form-control" required="required" autocomplete="new-password"/>
+                                        <span class="fa fa-eye o_little_eye input-group-text" aria-hidden="true"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <input type="submit" value="Continue" class="btn btn-primary float-end"/>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Duplicate DB -->
+        <div class="modal fade o_database_duplicate" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title"><i class="fa fa-files-o me-2"></i>Duplicate Database</h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form id="form-duplicate-db" role="form" action="/web/database/duplicate" method="post">
+                        <div class="modal-body">
+                            <t t-set="set_master_pwd" t-value="False" />
+                            <t t-call="master_input" />
+                            <div class="row mb-3">
+                                <label for="dbname_duplicate" class="col-md-4 col-form-label">Database Name</label>
+                                <div class="col-md-8">
+                                    <input id="dbname_duplicate" type="text" name="name" class="form-control" required="required" readonly="readonly"/>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="new_name" class="col-md-4 col-form-label">New Name</label>
+                                <div class="col-md-8">
+                                    <input id="new_name" type="text" name="new_name" class="form-control" required="required" t-att-pattern="pattern" title="Only alphanumerical characters, underscore, hyphen and dot are allowed"/>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="neutralize_database" class="col-md-4 col-form-label">Neutralize</label>
+                                <div class="col-md-8">
+                                    <input id="neutralize_database" type="checkbox" name="neutralize_database" class="form-check-input" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <input type="submit" value="Continue" class="btn btn-primary float-end"/>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Drop DB -->
+        <div class="modal fade o_database_delete" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title"><i class="fa fa-trash-o me-2"></i>Delete Database</h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form id="form_drop_db" role="form" action="/web/database/drop" method="post">
+                        <div class="modal-body">
+                            <t t-call="master_input" />
+                            <div class="row mb-3">
+                                <label for="dbname_delete" class="col-md-4 col-form-label">Database</label>
+                                <div class="col-md-8">
+                                    <input id="dbname_delete" type="text" name="name" class="form-control" required="required" readonly="readonly"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <input type="submit" value="Delete" class="btn btn-danger float-end"/>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Backup DB -->
+        <div class="modal fade o_database_backup" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title"><i class="fa fa-floppy-o me-2"></i>Backup Database</h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form id="form_backup_db" role="form" action="/web/database/backup" method="post">
+                        <div class="modal-body">
+                            <t t-call="master_input" />
+                            <div class="row mb-3">
+                                <label for="dbname_backup" class="col-md-4 col-form-label">Database Name</label>
+                                <div class="col-md-8">
+                                    <input id="dbname_backup" type="text" name="name" class="form-control" required="required" readonly="readonly"/>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="backup_format" class="col-md-4 col-form-label">Backup Format</label>
+                                <div class="col-md-8">
+                                    <select id="backup_format" name="backup_format" class="form-select" required="required">
+                                        <option value="zip">zip</option>
+                                        <option value="dump">pg_dump custom format (without filestore)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row mb-3" id="filestore_div">
+                                <label for="filestore" class="col-md-4 col-form-label">Include filestore</label>
+                                <div class="col-md-8">
+                                    <input id="filestore" type="checkbox" name="filestore" value="1" checked="checked" class="form-check-input" />
+                                    <input type="hidden" name="filestore" value="0"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <input type="submit" value="Backup" class="btn btn-primary float-end"/>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,31 @@
+# Python bytecode
+__pycache__
+*.pyc
+*.pyo
+
+# Git
+.git
+.gitignore
+
+# Documentation
+*.md
+
+# Environment files
+.env*
+!.env.prod.example
+
+# Compose files (not needed in Docker build)
+docker-compose*.yml
+app.yaml
+
+# Node / test tooling
+node_modules/
+tests/
+test-results/
+artifacts/
+playwright.config.ts
+package*.json
+
+# Scripts and backups
+scripts/
+backups/

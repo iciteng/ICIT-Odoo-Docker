@@ -1,0 +1,107 @@
+<t>
+    <!-- ============================================================
+         App Manager Tab — ICIT SaaS Guard
+         ============================================================ -->
+
+    <!-- Auth Panel (shown when not authenticated) -->
+    <div id="icit-apps-auth" class="icit-apps-auth">
+        <div class="icit-apps-auth-icon">
+            <i class="fa fa-shield"></i>
+        </div>
+        <p class="icit-apps-auth-text">
+            Enter the master password to manage tenant applications.
+        </p>
+        <div class="icit-apps-auth-form">
+            <div class="input-group">
+                <input type="password" id="icit-apps-master-pwd"
+                       class="form-control" placeholder="Master Password"
+                       autocomplete="current-password" />
+                <span class="fa fa-eye o_little_eye input-group-text" aria-hidden="true"></span>
+            </div>
+            <button type="button" id="icit-apps-auth-btn" class="btn btn-primary mt-3">
+                <i class="fa fa-unlock-alt me-1"></i> Authenticate
+            </button>
+        </div>
+    </div>
+
+    <!-- App Manager Content (shown after auth) -->
+    <div id="icit-apps-content" class="icit-apps-content" style="display:none;">
+        <!-- Toolbar -->
+        <div class="icit-apps-toolbar">
+            <!-- DB Selector -->
+            <div class="icit-apps-db-selector">
+                <label for="icit-apps-db-select">
+                    <i class="fa fa-database me-1"></i> Database
+                </label>
+                <select id="icit-apps-db-select" class="form-select form-select-sm">
+                    <option value="">Select a database...</option>
+                    <t t-foreach="databases" t-as="db">
+                        <option t-att-value="db" t-out="db" />
+                    </t>
+                </select>
+            </div>
+
+            <!-- Search -->
+            <div class="icit-apps-search">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text"><i class="fa fa-search"></i></span>
+                    <input type="text" id="icit-apps-search" class="form-control"
+                           placeholder="Search modules..." />
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="icit-apps-filters">
+            <div class="btn-group btn-group-sm" role="group">
+                <button type="button" class="btn btn-secondary active" data-filter="all">
+                    All <span class="icit-badge" id="icit-count-all"></span>
+                </button>
+                <button type="button" class="btn btn-secondary" data-filter="installed">
+                    Installed <span class="icit-badge" id="icit-count-installed"></span>
+                </button>
+                <button type="button" class="btn btn-secondary" data-filter="available">
+                    Available <span class="icit-badge" id="icit-count-available"></span>
+                </button>
+            </div>
+            <div class="icit-apps-toggles">
+                <label class="icit-toggle" title="Show only application modules">
+                    <input type="checkbox" id="icit-apps-only" />
+                    <span class="icit-toggle-label">Apps only</span>
+                </label>
+            </div>
+            <!-- Bulk select toggle -->
+            <button type="button" id="icit-apps-select-btn" class="btn btn-sm btn-secondary"
+                    title="Toggle multi-select mode">
+                <i class="fa fa-check-square-o me-1"></i> Select
+            </button>
+            <!-- Allowlist button -->
+            <button type="button" id="icit-apps-allowlist-btn" class="btn btn-sm btn-secondary"
+                    style="display:none;" title="Manage module allowlist">
+                <i class="fa fa-list-alt me-1"></i> Allowlist
+            </button>
+        </div>
+
+        <!-- Bulk Actions Bar (Phase 4) -->
+        <div id="icit-apps-bulk-bar" class="icit-apps-bulk-bar" style="display:none;">
+            <span id="icit-bulk-count">0 selected</span>
+            <div class="btn-group btn-group-sm">
+                <button type="button" id="icit-bulk-install" class="btn btn-primary btn-sm">
+                    <i class="fa fa-download me-1"></i> Install Selected
+                </button>
+                <button type="button" id="icit-bulk-uninstall" class="btn btn-danger btn-sm">
+                    <i class="fa fa-trash-o me-1"></i> Remove Selected
+                </button>
+            </div>
+        </div>
+
+        <!-- Module List -->
+        <div id="icit-apps-modules" class="icit-apps-modules">
+            <!-- Populated by apps_manager.js -->
+            <div class="icit-apps-empty">
+                <i class="fa fa-cubes"></i>
+                <p>Select a database to view modules</p>
+            </div>
+        </div>
+    </div>
+</t>

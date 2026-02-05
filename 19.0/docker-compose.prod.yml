@@ -24,6 +24,7 @@ services:
 
       # Admin password (change in real production!)
       - ODOO_ADMIN_PASSWD=change-me-in-production
+      - ADMIN_SUBDOMAIN=${ADMIN_SUBDOMAIN:-admin}
 
       # DO Spaces / S3 configuration (optional for local testing)
       # Uncomment and fill these to test S3 attachment storage locally
