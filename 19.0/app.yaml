@@ -40,7 +40,7 @@ services:
       - key: HOST
         scope: RUN_TIME
         value: ${db.HOSTNAME}
-      - key: PORT
+      - key: DB_PORT
         scope: RUN_TIME
         value: ${db.PORT}
       - key: USER
