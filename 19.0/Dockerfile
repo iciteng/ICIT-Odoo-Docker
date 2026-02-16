@@ -85,6 +85,7 @@ COPY ./odoo.conf /etc/odoo/
 
 # Fix Windows line endings and set permissions
 RUN sed -i 's/\r$//' /entrypoint.sh \
+    && chmod +x /entrypoint.sh \
     && chown odoo /etc/odoo/odoo.conf \
     && mkdir -p /mnt/extra-addons \
     && chown -R odoo /mnt/extra-addons
