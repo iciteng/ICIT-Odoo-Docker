@@ -1,4 +1,5 @@
 import logging
+from collections import defaultdict
 from datetime import timedelta
 
 from odoo import fields, http
@@ -29,6 +30,35 @@ class SaasDashboardController(http.Controller):
         if not is_icit_admin:
             raise AccessError('Access denied.')
         return user
+
+    def _dependency_roots(self, root_modules):
+        """Map dependency module name -> set of enabled root module names that require it."""
+        deps_model = request.env['ir.module.module.dependency'].sudo()
+        dep_map = defaultdict(list)
+        for dep in deps_model.search([]):
+            module_name = dep.module_id.name
+            if module_name and dep.name:
+                dep_map[module_name].append(dep.name)
+
+        to_visit = []
+        seen_pairs = set()
+        roots_by_dep = defaultdict(set)
+
+        for root in root_modules:
+            to_visit.append((root.name, root.name))
+
+        while to_visit:
+            current_name, root_name = to_visit.pop()
+            for dep_name in dep_map.get(current_name, []):
+                pair = (dep_name, root_name)
+                if pair in seen_pairs:
+                    continue
+                seen_pairs.add(pair)
+
+                roots_by_dep[dep_name].add(root_name)
+                to_visit.append((dep_name, root_name))
+
+        return roots_by_dep
 
     @http.route('/admin/api/stats', type='jsonrpc', auth='user', methods=['POST'], csrf=False)
     def get_stats(self, **kwargs):
@@ -258,15 +288,29 @@ class SaasDashboardController(http.Controller):
                 ('state', '!=', 'uninstallable'),
             ], order='shortdesc asc, name asc')
 
-            enabled_ids = set(tenant.allowed_app_ids.ids)
+            explicit_enabled = tenant.allowed_app_ids
+            explicit_enabled_ids = set(explicit_enabled.ids)
+            dependency_roots = self._dependency_roots(explicit_enabled)
+
+            app_label_by_name = {
+                mod.name: (mod.shortdesc or mod.name)
+                for mod in all_apps
+            }
 
             apps = []
             for mod in all_apps:
+                required_by_names = sorted(dependency_roots.get(mod.name, set()))
+                required_by_labels = [app_label_by_name.get(name, name) for name in required_by_names]
+                is_dependency_required = bool(required_by_names)
+                explicit = mod.id in explicit_enabled_ids
+
                 apps.append({
                     'id': mod.id,
                     'name': mod.shortdesc or mod.name,
                     'technical_name': mod.name,
-                    'enabled': mod.id in enabled_ids,
+                    'enabled': explicit or is_dependency_required,
+                    'locked': is_dependency_required,
+                    'required_by': required_by_labels,
                     'installed': mod.state in ('installed', 'to upgrade'),
                 })
             return {'apps': apps}
@@ -313,6 +357,21 @@ class SaasDashboardController(http.Controller):
 
                 tenant.write({'allowed_app_ids': [(4, module.id)]})
             else:
+                explicit_enabled = tenant.allowed_app_ids
+                roots_source = explicit_enabled - module if module in explicit_enabled else explicit_enabled
+                dependency_roots = self._dependency_roots(roots_source)
+                required_by_names = sorted(dependency_roots.get(module.name, set()))
+                if required_by_names:
+                    labels = request.env['ir.module.module'].sudo().search([
+                        ('name', 'in', required_by_names),
+                    ])
+                    label_by_name = {m.name: (m.shortdesc or m.name) for m in labels}
+                    required_by = ', '.join(label_by_name.get(name, name) for name in required_by_names)
+                    return self._json_error(
+                        f'Cannot disable this app because it is required by: {required_by}.',
+                        status=409,
+                    )
+
                 app_groups = get_app_groups(request.env, module.name)
 
                 other_enabled = tenant.allowed_app_ids - module

@@ -374,14 +374,24 @@
             var installedBadge = app.installed
                 ? ''
                 : '<span class="badge badge--not-installed">Not available</span>';
+            var dependencyBadge = '';
+            if (app.locked) {
+                var requiredBy = Array.isArray(app.required_by) ? app.required_by.join(', ') : '';
+                var title = requiredBy
+                    ? ('Required by: ' + requiredBy)
+                    : 'Required dependency';
+                dependencyBadge = '<span class="badge badge--plan" title="' + escapeHtml(title) + '">Required</span>';
+            }
+            var isToggleDisabled = !app.installed || app.locked;
 
             item.innerHTML =
                 '<div class="app-item-info">' +
                     '<span class="app-name">' + escapeHtml(app.name || app.module_name) + '</span>' +
+                    dependencyBadge +
                     installedBadge +
                 '</div>' +
                 '<label class="toggle">' +
-                    '<input type="checkbox" ' + (app.enabled ? 'checked' : '') + (!app.installed ? ' disabled' : '') + ' data-app-id="' + app.id + '"/>' +
+                    '<input type="checkbox" ' + (app.enabled ? 'checked' : '') + (isToggleDisabled ? ' disabled' : '') + ' data-app-id="' + app.id + '"/>' +
                     '<span class="toggle-track"></span>' +
                     '<span class="toggle-thumb"></span>' +
                 '</label>';
