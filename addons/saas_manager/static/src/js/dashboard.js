@@ -373,7 +373,7 @@
 
             var installedBadge = app.installed
                 ? ''
-                : '<span class="badge badge--not-installed">Not installed</span>';
+                : '<span class="badge badge--not-installed">Not available</span>';
 
             item.innerHTML =
                 '<div class="app-item-info">' +
@@ -381,7 +381,7 @@
                     installedBadge +
                 '</div>' +
                 '<label class="toggle">' +
-                    '<input type="checkbox" ' + (app.enabled ? 'checked' : '') + ' data-app-id="' + app.id + '"/>' +
+                    '<input type="checkbox" ' + (app.enabled ? 'checked' : '') + (!app.installed ? ' disabled' : '') + ' data-app-id="' + app.id + '"/>' +
                     '<span class="toggle-track"></span>' +
                     '<span class="toggle-thumb"></span>' +
                 '</label>';
@@ -402,21 +402,11 @@
 
         checkbox.disabled = true;
 
-        if (enabled) {
-            var badge = itemEl.querySelector('.badge--not-installed');
-            if (badge) {
-                badge.textContent = 'Installing...';
-                badge.className = 'badge badge--installing';
-            }
-            showToast('Enabling ' + appName + '... This may take a few minutes if the module needs to be installed.', 'success');
-        }
+        showToast((enabled ? 'Enabling' : 'Disabling') + ' ' + appName + '...', 'success');
 
         apiCall('/admin/api/tenants/' + tenantId + '/apps/' + appId, { enabled: enabled })
             .then(function (result) {
                 var msg = enabled ? 'App enabled' : 'App disabled';
-                if (result && result.just_installed) {
-                    msg = appName + ' installed and enabled successfully';
-                }
                 showToast(msg, 'success');
                 loadTenantApps(tenantId);
             })

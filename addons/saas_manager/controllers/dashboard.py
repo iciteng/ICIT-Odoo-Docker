@@ -294,14 +294,12 @@ class SaasDashboardController(http.Controller):
             else:
                 enabled = bool(enabled_param)
 
-            just_installed = False
-
             if enabled:
                 if module.state not in ('installed', 'to upgrade'):
-                    module.button_immediate_install()
-                    just_installed = True
-                    tenant = request.env['saas.tenant'].sudo().browse(tenant_id)
-                    module = request.env['ir.module.module'].sudo().browse(app_id)
+                    return self._json_error(
+                        'Module is not pre-installed. Contact support.',
+                        status=409,
+                    )
 
                 app_groups = get_app_groups(request.env, module.name)
 
@@ -348,7 +346,7 @@ class SaasDashboardController(http.Controller):
                     'enabled': enabled,
                 })
 
-            return {'success': True, 'just_installed': just_installed}
+            return {'success': True}
         except AccessError as exc:
             return self._json_error(str(exc), status=403)
         except Exception:

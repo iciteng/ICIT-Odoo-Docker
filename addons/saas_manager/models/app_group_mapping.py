@@ -37,6 +37,27 @@ APP_GROUP_MAP = {
     'mrp': [
         'mrp.group_mrp_user',
     ],
+    'hr_expense': [
+        'hr_expense.group_hr_expense_team_approver',
+    ],
+    'hr_timesheet': [
+        'hr_timesheet.group_hr_timesheet_user',
+    ],
+    'hr_holidays': [
+        'hr_holidays.group_hr_holidays_user',
+    ],
+    'hr_recruitment': [
+        'hr_recruitment.group_hr_recruitment_user',
+    ],
+    'fleet': [
+        'fleet.fleet_group_user',
+    ],
+    'maintenance': [
+        'maintenance.group_equipment_manager',
+    ],
+    'lunch': [
+        'lunch.group_lunch_user',
+    ],
 }
 
 
