@@ -59,5 +59,51 @@
             <field name="perm_create" eval="False"/>
             <field name="perm_unlink" eval="False"/>
         </record>
+
+        <!-- =================================================================
+             Multi-tenant isolation: core Odoo models
+             =================================================================
+             Odoo's default res.partner rule allows company_id=False (global
+             records) to leak across tenants. We deactivate it and replace
+             with strict company-only rules. Group rules are ORed, so ICIT
+             admins get (1=1) OR (company match) = everything.
+             ================================================================= -->
+
+        <!-- Deactivate Odoo's default permissive partner rule -->
+        <record id="base.res_partner_rule" model="ir.rule">
+            <field name="active" eval="False"/>
+        </record>
+
+        <!-- res.partner: ICIT admins see all -->
+        <record id="rule_partner_icit_admin_all" model="ir.rule">
+            <field name="name">Partners: ICIT admins see all</field>
+            <field name="model_id" ref="base.model_res_partner"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('saas_manager.group_icit_admin'))]"/>
+        </record>
+
+        <!-- res.partner: tenant users see own company only -->
+        <record id="rule_partner_tenant_company" model="ir.rule">
+            <field name="name">Partners: tenants see own company only</field>
+            <field name="model_id" ref="base.model_res_partner"/>
+            <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+
+        <!-- res.users: ICIT admins see all -->
+        <record id="rule_users_icit_admin_all" model="ir.rule">
+            <field name="name">Users: ICIT admins see all</field>
+            <field name="model_id" ref="base.model_res_users"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('saas_manager.group_icit_admin'))]"/>
+        </record>
+
+        <!-- res.users: tenant users see own company only -->
+        <record id="rule_users_tenant_company" model="ir.rule">
+            <field name="name">Users: tenants see own company only</field>
+            <field name="model_id" ref="base.model_res_users"/>
+            <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        </record>
     </data>
 </odoo>
