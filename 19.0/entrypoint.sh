@@ -9,7 +9,7 @@ fi
 # set the postgres database host, port, user and password according to the environment
 # and pass them as arguments to the odoo process if not present in the config file
 : ${HOST:=${DB_PORT_5432_TCP_ADDR:='db'}}
-: ${PORT:=${DB_PORT:=${DB_PORT_5432_TCP_PORT:=5432}}}
+: ${DB_PORT:=${DB_PORT_5432_TCP_PORT:=5432}}
 : ${USER:=${DB_ENV_POSTGRES_USER:=${POSTGRES_USER:='odoo'}}}
 : ${PASSWORD:=${DB_ENV_POSTGRES_PASSWORD:=${POSTGRES_PASSWORD:='odoo'}}}
 : ${DB_NAME:='postgres'}
@@ -26,12 +26,12 @@ function check_config() {
     DB_ARGS+=("${value}")
 }
 check_config "db_host" "$HOST"
-check_config "db_port" "$PORT"
+check_config "db_port" "$DB_PORT"
 check_config "db_user" "$USER"
 check_config "db_password" "$PASSWORD"
 
 # Build wait-for-psql args (subset that the script supports)
-WAIT_ARGS=("--db_host" "$HOST" "--db_port" "$PORT" "--db_user" "$USER" "--db_password" "$PASSWORD" "--db_name" "$DB_NAME")
+WAIT_ARGS=("--db_host" "$HOST" "--db_port" "$DB_PORT" "--db_user" "$USER" "--db_password" "$PASSWORD" "--db_name" "$DB_NAME")
 if [ -n "$DB_SSLMODE" ]; then
     check_config "db_sslmode" "$DB_SSLMODE"
     WAIT_ARGS+=("--db_sslmode" "$DB_SSLMODE")
