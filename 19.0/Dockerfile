@@ -80,8 +80,8 @@ RUN curl -o odoo.deb -sSL http://nightly.odoo.com/${ODOO_VERSION}/nightly/deb/od
     && rm -rf /var/lib/apt/lists/* odoo.deb
 
 # Copy entrypoint script and Odoo configuration file
-COPY ./entrypoint.sh /
-COPY ./odoo.conf /etc/odoo/
+COPY 19.0/entrypoint.sh /
+COPY 19.0/odoo.conf /etc/odoo/
 
 # Fix Windows line endings and set permissions
 RUN sed -i 's/\r$//' /entrypoint.sh \
@@ -89,6 +89,11 @@ RUN sed -i 's/\r$//' /entrypoint.sh \
     && chown odoo /etc/odoo/odoo.conf \
     && mkdir -p /mnt/extra-addons \
     && chown -R odoo /mnt/extra-addons
+
+# Copy custom addons into the image
+COPY addons/ /mnt/extra-addons/
+RUN chown -R odoo /mnt/extra-addons
+
 VOLUME ["/var/lib/odoo", "/mnt/extra-addons"]
 
 # Expose Odoo services
@@ -97,7 +102,7 @@ EXPOSE 8069 8071 8072
 # Set the default config file
 ENV ODOO_RC /etc/odoo/odoo.conf
 
-COPY wait-for-psql.py /usr/local/bin/wait-for-psql.py
+COPY 19.0/wait-for-psql.py /usr/local/bin/wait-for-psql.py
 RUN sed -i 's/\r$//' /usr/local/bin/wait-for-psql.py \
     && chmod +x /usr/local/bin/wait-for-psql.py
 

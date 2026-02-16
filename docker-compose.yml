@@ -1,6 +1,8 @@
 services:
   odoo:
-    build: ./19.0
+    build:
+      context: .
+      dockerfile: 19.0/Dockerfile
     ports:
       - "8069:8069"
       - "8072:8072"
