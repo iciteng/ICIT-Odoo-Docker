@@ -4,6 +4,9 @@ from odoo.addons.web.controllers.home import Home
 
 
 class CustomHome(Home):
+    def _is_icit_admin(self, user):
+        login = (user.login or '').strip().lower()
+        return user.has_group('saas_manager.group_icit_admin') and login.endswith('@icitsolutions.com')
 
     @http.route('/', type='http', auth='public')
     def index(self, **kwargs):
@@ -22,8 +25,25 @@ class CustomHome(Home):
     def database_manager(self, **kwargs):
         return request.render('custom_auth.error_404', {}, status=404)
 
+    @http.route('/web/login', type='http', auth='none')
+    def web_login(self, redirect=None, **kwargs):
+        if request.session.uid:
+            user = request.env['res.users'].browse(request.session.uid)
+            if user.exists() and self._is_icit_admin(user):
+                return request.redirect('/admin')
+            return request.redirect('/odoo')
+
+        target = (redirect or kwargs.get('redirect') or '').strip()
+        if target.startswith('/admin'):
+            return request.redirect('/admin')
+        return request.redirect('/')
+
 
 class CustomAuthController(http.Controller):
+
+    def _is_icit_admin(self, user):
+        login = (user.login or '').strip().lower()
+        return user.has_group('saas_manager.group_icit_admin') and login.endswith('@icitsolutions.com')
 
     def _authenticate(self, login, password):
         credential = {'login': login, 'password': password, 'type': 'password'}
@@ -69,3 +89,19 @@ class CustomAuthController(http.Controller):
         except Exception:
             pass
         return request.redirect('/admin?error=1')
+
+    @http.route('/auth/logout', type='http', auth='public', methods=['GET'], csrf=False)
+    def auth_logout(self, next=None, **kwargs):
+        redirect_target = '/'
+
+        uid = request.session.uid
+        if uid:
+            user = request.env['res.users'].sudo().browse(uid)
+            if user.exists() and self._is_icit_admin(user):
+                redirect_target = '/admin'
+
+        if (next or '').strip().lower() == 'admin':
+            redirect_target = '/admin'
+
+        request.session.logout()
+        return request.redirect(redirect_target)
