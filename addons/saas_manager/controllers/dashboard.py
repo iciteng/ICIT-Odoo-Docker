@@ -309,7 +309,7 @@ class SaasDashboardController(http.Controller):
                 if app_groups and company_users:
                     group_cmds = [(4, g.id) for g in app_groups]
                     for user in company_users:
-                        user.write({'groups_id': group_cmds})
+                        user.write({'group_ids': group_cmds})
 
                 tenant.write({'allowed_app_ids': [(4, module.id)]})
             else:
@@ -328,7 +328,7 @@ class SaasDashboardController(http.Controller):
                 if groups_to_remove and company_users:
                     group_cmds = [(3, g.id) for g in groups_to_remove]
                     for user in company_users:
-                        user.write({'groups_id': group_cmds})
+                        user.write({'group_ids': group_cmds})
 
                 tenant.write({'allowed_app_ids': [(3, module.id)]})
 
