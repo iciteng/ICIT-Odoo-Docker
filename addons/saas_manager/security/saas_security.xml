@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="group_icit_admin" model="res.groups">
+            <field name="name">ICIT Admin</field>
+            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+
+        <record id="rule_saas_tenant_admin_all" model="ir.rule">
+            <field name="name">SaaS Tenant: ICIT admins see all</field>
+            <field name="model_id" ref="model_saas_tenant"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('saas_manager.group_icit_admin'))]"/>
+        </record>
+
+        <record id="rule_saas_tenant_user_company" model="ir.rule">
+            <field name="name">SaaS Tenant: users see own company</field>
+            <field name="model_id" ref="model_saas_tenant"/>
+            <field name="domain_force">[('company_id', '=', user.company_id.id)]</field>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+
+        <record id="rule_saas_app_access_admin_all" model="ir.rule">
+            <field name="name">SaaS App Access: ICIT admins see all</field>
+            <field name="model_id" ref="model_saas_app_access"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('saas_manager.group_icit_admin'))]"/>
+        </record>
+
+        <record id="rule_saas_app_access_user_company" model="ir.rule">
+            <field name="name">SaaS App Access: users see own company</field>
+            <field name="model_id" ref="model_saas_app_access"/>
+            <field name="domain_force">[('tenant_id.company_id', '=', user.company_id.id)]</field>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+
+        <record id="rule_saas_usage_log_admin_all" model="ir.rule">
+            <field name="name">SaaS Usage Log: ICIT admins see all</field>
+            <field name="model_id" ref="model_saas_usage_log"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('saas_manager.group_icit_admin'))]"/>
+        </record>
+
+        <record id="rule_saas_usage_log_user_company" model="ir.rule">
+            <field name="name">SaaS Usage Log: users see own company</field>
+            <field name="model_id" ref="model_saas_usage_log"/>
+            <field name="domain_force">[('tenant_id.company_id', '=', user.company_id.id)]</field>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+        </record>
+
+        <!-- Prevent tenant users from installing/writing modules -->
+        <record id="rule_module_install_icit_only" model="ir.rule">
+            <field name="name">Module Install: ICIT admins only</field>
+            <field name="model_id" ref="base.model_ir_module_module"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('saas_manager.group_icit_admin'))]"/>
+            <field name="perm_read" eval="False"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+    </data>
+</odoo>

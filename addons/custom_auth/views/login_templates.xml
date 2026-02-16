@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="login_page" name="Custom Login Page">
+        <html>
+            <head>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <title>Login</title>
+                <link rel="icon" type="image/x-icon" href="/web/static/img/favicon.ico"/>
+                <link rel="stylesheet" href="/custom_auth/static/src/css/login.css"/>
+            </head>
+            <body>
+                <div class="page-container">
+                    <div class="card">
+                        <div class="card-logo">
+                            <a href="https://icitsolutions.com" target="_blank">
+                                <img src="https://1icit.atl1.cdn.digitaloceanspaces.com/brand/icit-logo-full.png" alt="ICIT"/>
+                            </a>
+                        </div>
+                        <div class="login-header">
+                            <h1>Welcome</h1>
+                            <p>Sign in to your account</p>
+                        </div>
+                        <t t-if="error">
+                            <div class="login-error">
+                                Invalid email or password
+                            </div>
+                        </t>
+                        <form action="/auth/login" method="post">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <div class="form-group">
+                                <label for="login">Email</label>
+                                <input type="text" id="login" name="login"
+                                       placeholder="Enter your email"
+                                       required="required"
+                                       autocapitalize="off"
+                                       autocomplete="username"/>
+                            </div>
+                            <div class="form-group">
+                                <label for="password">Password</label>
+                                <input type="password" id="password" name="password"
+                                       placeholder="Enter your password"
+                                       required="required"
+                                       autocomplete="current-password"/>
+                            </div>
+                            <button type="submit" class="login-btn">Log In</button>
+                        </form>
+                        <div class="card-footer">
+                            Powered by
+                            <a href="https://www.odoo.com" target="_blank">
+                                <img src="https://odoocdn.com/openerp_website/static/src/img/assets/png/odoo_logo.png" alt="odoo" class="footer-logo"/>
+                            </a>
+                            <span class="separator">|</span>
+                            <a href="https://icitsolutions.com" target="_blank">
+                                <img src="https://1icit.atl1.cdn.digitaloceanspaces.com/brand/icit-logo-full.png" alt="ICIT" class="footer-logo"/>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </body>
+        </html>
+    </template>
+
+    <template id="error_404" name="Custom 404 Page">
+        <html>
+            <head>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <title>404 — Page Not Found</title>
+                <link rel="icon" type="image/x-icon" href="/web/static/img/favicon.ico"/>
+                <link rel="stylesheet" href="/custom_auth/static/src/css/login.css"/>
+            </head>
+            <body>
+                <div class="page-container">
+                    <div class="card">
+                        <div class="card-logo">
+                            <a href="https://icitsolutions.com" target="_blank">
+                                <img src="https://1icit.atl1.cdn.digitaloceanspaces.com/brand/icit-logo-full.png" alt="ICIT"/>
+                            </a>
+                        </div>
+                        <div class="error-code">404</div>
+                        <div class="error-title">Page Not Found</div>
+                        <div class="error-desc">The page you're looking for doesn't exist or has been moved.</div>
+                        <a href="/" class="back-btn">Back to Login</a>
+                        <div class="card-footer">
+                            Powered by
+                            <a href="https://www.odoo.com" target="_blank">
+                                <img src="https://odoocdn.com/openerp_website/static/src/img/assets/png/odoo_logo.png" alt="odoo" class="footer-logo"/>
+                            </a>
+                            <span class="separator">|</span>
+                            <a href="https://icitsolutions.com" target="_blank">
+                                <img src="https://1icit.atl1.cdn.digitaloceanspaces.com/brand/icit-logo-full.png" alt="ICIT" class="footer-logo"/>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </body>
+        </html>
+    </template>
+    <template id="admin_login_page" name="Admin Login Page">
+        <html>
+            <head>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <title>Admin Panel</title>
+                <link rel="icon" type="image/x-icon" href="/web/static/img/favicon.ico"/>
+                <link rel="stylesheet" href="/custom_auth/static/src/css/login.css"/>
+            </head>
+            <body>
+                <div class="page-container">
+                    <div class="card">
+                        <div class="card-logo">
+                            <a href="https://icitsolutions.com" target="_blank">
+                                <img src="https://1icit.atl1.cdn.digitaloceanspaces.com/brand/icit-logo-full.png" alt="ICIT"/>
+                            </a>
+                        </div>
+                        <div class="login-header">
+                            <h1>Admin Panel</h1>
+                            <p>Sign in with your administrator account</p>
+                        </div>
+                        <t t-if="error == 'access_denied'">
+                            <div class="login-error">
+                                Access restricted to ICIT Solutions team members
+                            </div>
+                        </t>
+                        <t t-elif="error">
+                            <div class="login-error">
+                                Invalid email or password
+                            </div>
+                        </t>
+                        <form action="/admin/login" method="post">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <div class="form-group">
+                                <label for="login">Email</label>
+                                <input type="text" id="login" name="login"
+                                       placeholder="Enter admin email"
+                                       required="required"
+                                       autocapitalize="off"
+                                       autocomplete="username"/>
+                            </div>
+                            <div class="form-group">
+                                <label for="password">Password</label>
+                                <input type="password" id="password" name="password"
+                                       placeholder="Enter admin password"
+                                       required="required"
+                                       autocomplete="current-password"/>
+                            </div>
+                            <button type="submit" class="login-btn admin-btn">Log In</button>
+                        </form>
+                        <div class="card-footer">
+                            Powered by
+                            <a href="https://www.odoo.com" target="_blank">
+                                <img src="https://odoocdn.com/openerp_website/static/src/img/assets/png/odoo_logo.png" alt="odoo" class="footer-logo"/>
+                            </a>
+                            <span class="separator">|</span>
+                            <a href="https://icitsolutions.com" target="_blank">
+                                <img src="https://1icit.atl1.cdn.digitaloceanspaces.com/brand/icit-logo-full.png" alt="ICIT" class="footer-logo"/>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </body>
+        </html>
+    </template>
+</odoo>

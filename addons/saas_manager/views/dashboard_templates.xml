@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="admin_dashboard" name="ICIT Admin Dashboard">
+        <html>
+            <head>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <title>ICIT Admin Dashboard</title>
+                <link rel="icon" type="image/x-icon" href="/web/static/img/favicon.ico"/>
+                <link rel="stylesheet" href="/saas_manager/static/src/css/dashboard.css"/>
+            </head>
+            <body>
+                <input type="hidden" id="csrf_token" t-att-value="request.csrf_token()"/>
+
+                <!-- Header -->
+                <header class="dashboard-header">
+                    <div class="header-left">
+                        <a href="https://icitsolutions.com" target="_blank" rel="noopener noreferrer" class="header-logo">
+                            <img src="https://1icit.atl1.cdn.digitaloceanspaces.com/brand/icit-logo-full.png" alt="ICIT"/>
+                        </a>
+                        <h1 class="header-title">Admin Dashboard</h1>
+                    </div>
+                    <div class="header-right">
+                        <button class="btn btn-ghost" id="btnManageAdmins">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                            Admin Users
+                        </button>
+                        <span class="header-user" t-esc="user_name"/>
+                        <a href="/web/session/logout?redirect=/admin" class="btn btn-ghost">Log Out</a>
+                    </div>
+                </header>
+
+                <!-- Main Content -->
+                <main class="dashboard-main">
+                    <!-- Stats Cards -->
+                    <section class="stats-grid" id="statsGrid">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                            </div>
+                            <div class="stat-content">
+                                <span class="stat-value" id="statTenants">-</span>
+                                <span class="stat-label">Total Tenants</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon stat-icon--green">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                            </div>
+                            <div class="stat-content">
+                                <span class="stat-value" id="statActive">-</span>
+                                <span class="stat-label">Active Today</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon stat-icon--purple">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            </div>
+                            <div class="stat-content">
+                                <span class="stat-value" id="statUsers">-</span>
+                                <span class="stat-label">Total Users</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon stat-icon--amber">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                            </div>
+                            <div class="stat-content">
+                                <span class="stat-value" id="statStorage">-</span>
+                                <span class="stat-label">Storage Used</span>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Tenants List -->
+                    <section class="tenants-section">
+                        <div class="section-header">
+                            <h2>Companies</h2>
+                            <button class="btn btn-primary" id="btnAddTenant">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                                Add Company
+                            </button>
+                        </div>
+
+                        <!-- Search / Filter Bar -->
+                        <div class="filter-bar">
+                            <div class="search-box">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                <input type="text" id="searchInput" placeholder="Search companies..."/>
+                            </div>
+                            <div class="filter-pills">
+                                <button class="pill pill--active" data-filter="all">All</button>
+                                <button class="pill" data-filter="active">Active</button>
+                                <button class="pill" data-filter="trial">Trial</button>
+                                <button class="pill" data-filter="suspended">Suspended</button>
+                            </div>
+                        </div>
+
+                        <!-- Tenant Cards -->
+                        <div class="tenants-grid" id="tenantsGrid">
+                            <div class="loading-state" id="tenantsLoading">
+                                <div class="spinner"></div>
+                                <span>Loading companies...</span>
+                            </div>
+                        </div>
+
+                        <!-- Empty state -->
+                        <div class="empty-state" id="tenantsEmpty" style="display: none;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                            <p>No companies found</p>
+                        </div>
+                    </section>
+                </main>
+
+                <!-- Tenant Detail Slideout -->
+                <div class="slideout-overlay" id="slideoutOverlay"></div>
+                <aside class="slideout" id="tenantSlideout" role="dialog" aria-label="Company Details" aria-hidden="true">
+                    <div class="slideout-header">
+                        <h2 id="slideoutTitle">Company Details</h2>
+                        <button class="btn-icon" id="btnCloseSlideout" aria-label="Close panel">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </div>
+                    <div class="slideout-body" id="slideoutBody">
+                        <!-- Company Info -->
+                        <div class="detail-section">
+                            <h3>Information</h3>
+                            <div class="detail-grid">
+                                <div class="detail-item">
+                                    <span class="detail-label">Company</span>
+                                    <span class="detail-value" id="detailCompany">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Admin</span>
+                                    <span class="detail-value" id="detailAdmin">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Plan</span>
+                                    <span class="detail-value" id="detailPlan">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Status</span>
+                                    <span class="detail-value" id="detailStatus">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Users</span>
+                                    <span class="detail-value" id="detailUsers">-</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span class="detail-label">Created</span>
+                                    <span class="detail-value" id="detailCreated">-</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="detail-section">
+                            <h3>Actions</h3>
+                            <div class="action-buttons">
+                                <button class="btn btn-outline" id="btnEditTenant">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                    Edit
+                                </button>
+                                <button class="btn btn-outline" id="btnToggleStatus">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                                    <span>Suspend</span>
+                                </button>
+                                <button class="btn btn-outline btn-outline--danger" id="btnDeleteTenant">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- App Access -->
+                        <div class="detail-section">
+                            <h3>App Access</h3>
+                            <div class="app-list" id="appList">
+                                <div class="loading-state loading-state--sm">
+                                    <div class="spinner spinner--sm"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Users List -->
+                        <div class="detail-section">
+                            <h3>Users</h3>
+                            <div class="user-list" id="userList">
+                                <div class="loading-state loading-state--sm">
+                                    <div class="spinner spinner--sm"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Usage Stats -->
+                        <div class="detail-section">
+                            <h3>Usage (Last 30 Days)</h3>
+                            <div class="usage-chart" id="usageChart">
+                                <div class="loading-state loading-state--sm">
+                                    <div class="spinner spinner--sm"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- Add/Edit Tenant Modal -->
+                <div class="modal-overlay" id="modalOverlay" role="dialog" aria-label="Tenant form" aria-hidden="true">
+                    <div class="modal">
+                        <div class="modal-header">
+                            <h2 id="modalTitle">Add Company</h2>
+                            <button class="btn-icon" id="btnCloseModal" aria-label="Close dialog">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </button>
+                        </div>
+                        <form id="tenantForm">
+                            <div class="modal-body">
+                                <input type="hidden" id="tenantId" name="tenant_id"/>
+                                <div class="form-group">
+                                    <label for="companyName">Company Name</label>
+                                    <input type="text" id="companyName" name="company_name" placeholder="e.g. Acme Corporation" required="required"/>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="adminEmail">Admin Email</label>
+                                        <input type="email" id="adminEmail" name="admin_email" placeholder="admin@company.com" required="required"/>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="adminName">Admin Name</label>
+                                        <input type="text" id="adminName" name="admin_name" placeholder="Full name" required="required"/>
+                                    </div>
+                                </div>
+                                <div class="form-group" id="passwordGroup">
+                                    <label for="adminPassword">Admin Password</label>
+                                    <input type="password" id="adminPassword" name="admin_password" placeholder="Initial login password" required="required"/>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="tenantPlan">Plan</label>
+                                        <select id="tenantPlan" name="plan">
+                                            <option value="trial">Trial</option>
+                                            <option value="free">Free</option>
+                                            <option value="basic">Basic</option>
+                                            <option value="pro">Pro</option>
+                                            <option value="enterprise">Enterprise</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="maxUsers">Max Users</label>
+                                        <input type="number" id="maxUsers" name="max_users" value="5" min="1"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-ghost" id="btnCancelModal">Cancel</button>
+                                <button type="submit" class="btn btn-primary" id="btnSubmitModal">Create Company</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Admin Users Modal -->
+                <div class="modal-overlay" id="adminModalOverlay" role="dialog" aria-label="Manage admin users" aria-hidden="true">
+                    <div class="modal">
+                        <div class="modal-header">
+                            <h2>Admin Users</h2>
+                            <button class="btn-icon" id="btnCloseAdminModal" aria-label="Close dialog">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                            </button>
+                        </div>
+                        <div class="modal-body-scroll">
+                            <p class="admin-modal-desc">Users with ICIT Admin access can manage all tenants from this dashboard. Only @icitsolutions.com emails are allowed.</p>
+
+                            <!-- Add admin form -->
+                            <div class="admin-add-row">
+                                <input type="email" id="newAdminEmail" placeholder="email@icitsolutions.com" class="admin-add-input"/>
+                                <input type="text" id="newAdminName" placeholder="Full name" class="admin-add-input"/>
+                                <input type="password" id="newAdminPassword" placeholder="Password" class="admin-add-input"/>
+                                <button class="btn btn-primary btn-sm" id="btnAddAdmin">Add</button>
+                            </div>
+
+                            <!-- Admin list -->
+                            <div class="admin-list" id="adminList">
+                                <div class="loading-state loading-state--sm">
+                                    <div class="spinner spinner--sm"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Toast Container -->
+                <div class="toast-container" id="toastContainer"></div>
+
+                <!-- Footer -->
+                <footer class="dashboard-footer">
+                    <span>Powered by</span>
+                    <a href="https://www.odoo.com" target="_blank" rel="noopener noreferrer">
+                        <img src="https://odoocdn.com/openerp_website/static/src/img/assets/png/odoo_logo.png" alt="odoo" class="footer-logo"/>
+                    </a>
+                    <span class="separator">|</span>
+                    <a href="https://icitsolutions.com" target="_blank" rel="noopener noreferrer">
+                        <img src="https://1icit.atl1.cdn.digitaloceanspaces.com/brand/icit-logo-full.png" alt="ICIT" class="footer-logo"/>
+                    </a>
+                </footer>
+
+                <script src="/saas_manager/static/src/js/dashboard.js"></script>
+            </body>
+        </html>
+    </template>
+
+    <!-- Access Denied page shown when non-ICIT user tries /admin -->
+    <template id="admin_access_denied" name="Admin Access Denied">
+        <html>
+            <head>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="width=device-width, initial-scale=1"/>
+                <title>Access Denied</title>
+                <link rel="icon" type="image/x-icon" href="/web/static/img/favicon.ico"/>
+                <link rel="stylesheet" href="/custom_auth/static/src/css/login.css"/>
+            </head>
+            <body>
+                <div class="page-container">
+                    <div class="card">
+                        <div class="card-logo">
+                            <a href="https://icitsolutions.com" target="_blank" rel="noopener noreferrer">
+                                <img src="https://1icit.atl1.cdn.digitaloceanspaces.com/brand/icit-logo-full.png" alt="ICIT"/>
+                            </a>
+                        </div>
+                        <div class="error-code error-code--sm">403</div>
+                        <div class="error-title">Access Denied</div>
+                        <div class="error-desc">
+                            The admin dashboard is restricted to ICIT Solutions team members.
+                            <br/>
+                            Please contact your administrator if you believe this is an error.
+                        </div>
+                        <a href="/" class="back-btn">Back to Login</a>
+                        <div class="card-footer">
+                            Powered by
+                            <a href="https://www.odoo.com" target="_blank" rel="noopener noreferrer">
+                                <img src="https://odoocdn.com/openerp_website/static/src/img/assets/png/odoo_logo.png" alt="odoo" class="footer-logo"/>
+                            </a>
+                            <span class="separator">|</span>
+                            <a href="https://icitsolutions.com" target="_blank" rel="noopener noreferrer">
+                                <img src="https://1icit.atl1.cdn.digitaloceanspaces.com/brand/icit-logo-full.png" alt="ICIT" class="footer-logo"/>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </body>
+        </html>
+    </template>
+</odoo>
