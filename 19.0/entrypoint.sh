@@ -76,6 +76,53 @@ function maybe_init_modules() {
     fi
 }
 
+function maybe_repair_web_assets() {
+    if [ -z "${DB_NAME:-}" ] || [ "$DB_NAME" = "postgres" ]; then
+        return 0
+    fi
+
+    export PGHOST="$HOST"
+    export PGPORT="$DB_PORT"
+    export PGUSER="$USER"
+    export PGPASSWORD="$PASSWORD"
+    export PGDATABASE="$DB_NAME"
+    if [ -n "$DB_SSLMODE" ]; then
+        export PGSSLMODE="$DB_SSLMODE"
+    fi
+
+    echo "Ensuring DB-backed attachments and clearing stale file-based web assets..."
+    set +e
+    psql -v ON_ERROR_STOP=1 -q <<'SQL'
+DO $$
+BEGIN
+    IF to_regclass('public.ir_config_parameter') IS NULL THEN
+        RETURN;
+    END IF;
+
+    INSERT INTO ir_config_parameter (key, value, create_uid, create_date, write_uid, write_date)
+    VALUES ('ir_attachment.location', 'db', 1, NOW(), 1, NOW())
+    ON CONFLICT (key) DO UPDATE
+        SET value = EXCLUDED.value,
+            write_uid = 1,
+            write_date = NOW();
+
+    IF to_regclass('public.ir_attachment') IS NULL THEN
+        RETURN;
+    END IF;
+
+    DELETE FROM ir_attachment
+    WHERE url LIKE '/web/assets/%'
+      AND store_fname IS NOT NULL;
+END $$;
+SQL
+    REPAIR_EXIT_CODE=$?
+    set -e
+
+    if [ "$REPAIR_EXIT_CODE" -ne 0 ]; then
+        echo "WARNING: asset repair SQL failed (exit code: ${REPAIR_EXIT_CODE}), continuing startup..." >&2
+    fi
+}
+
 case "$1" in
     -- | odoo)
         shift
@@ -84,12 +131,14 @@ case "$1" in
         else
             wait-for-psql.py "${WAIT_ARGS[@]}" --timeout=30
             maybe_init_modules
+            maybe_repair_web_assets
             exec odoo "$@" "${DB_ARGS[@]}"
         fi
         ;;
     -*)
         wait-for-psql.py "${WAIT_ARGS[@]}" --timeout=30
         maybe_init_modules
+        maybe_repair_web_assets
         exec odoo "$@" "${DB_ARGS[@]}"
         ;;
     *)
