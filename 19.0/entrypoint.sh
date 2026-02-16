@@ -113,6 +113,38 @@ check_config "db_port" "$DB_PORT"
 check_config "db_user" "$USER"
 check_config "db_password" "$PASSWORD"
 
+function maybe_init_modules() {
+    if [ -z "${ODOO_INIT_MODULES:-}" ]; then
+        return 0
+    fi
+
+    MODULES_HASH=$(echo -n "$ODOO_INIT_MODULES" | md5sum | cut -d' ' -f1)
+    MODULES_SENTINEL="/var/lib/odoo/.modules_init_${MODULES_HASH}"
+
+    if [ -f "${MODULES_SENTINEL}" ]; then
+        echo "Modules already initialized (hash: ${MODULES_HASH}), skipping"
+        return 0
+    fi
+
+    if [ -z "${DB_NAME:-}" ]; then
+        echo "WARNING: ODOO_INIT_MODULES set but DB_NAME not specified, skipping pre-install" >&2
+        return 0
+    fi
+
+    echo "Pre-installing modules: ${ODOO_INIT_MODULES} into database ${DB_NAME}..."
+    set +e
+    odoo -d "$DB_NAME" -i "$ODOO_INIT_MODULES" --without-demo=all --stop-after-init "${DB_ARGS[@]}"
+    MODULES_INIT_EXIT_CODE=$?
+    set -e
+
+    if [ "${MODULES_INIT_EXIT_CODE}" -eq 0 ]; then
+        touch "${MODULES_SENTINEL}"
+        echo "Module pre-install completed successfully"
+    else
+        echo "WARNING: Module pre-install failed (exit code: ${MODULES_INIT_EXIT_CODE}), continuing startup..." >&2
+    fi
+}
+
 case "$1" in
     -- | odoo)
         shift
@@ -120,11 +152,13 @@ case "$1" in
             exec odoo "$@"
         else
             wait-for-psql.py ${DB_ARGS[@]} --timeout=30
+            maybe_init_modules
             exec odoo "$@" "${DB_ARGS[@]}"
         fi
         ;;
     -*)
         wait-for-psql.py ${DB_ARGS[@]} --timeout=30
+        maybe_init_modules
         exec odoo "$@" "${DB_ARGS[@]}"
         ;;
     *)

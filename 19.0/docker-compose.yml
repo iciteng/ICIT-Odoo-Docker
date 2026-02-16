@@ -18,6 +18,8 @@ services:
       - PASSWORD=${POSTGRES_PASSWORD:-odoo}
       - DB_SSLMODE=${DB_SSLMODE:-disable}
       - ADMIN_SUBDOMAIN=${ADMIN_SUBDOMAIN:-admin}
+      - ODOO_INIT_MODULES=${ODOO_INIT_MODULES:-}
+      - DB_NAME=${DB_NAME:-}
     restart: unless-stopped
 
   db:
