@@ -16,6 +16,8 @@ services:
       - PASSWORD=${PASSWORD}
       - DB_NAME=${DB_NAME}
       - DB_SSLMODE=${DB_SSLMODE}
+      - ODOO_DB_MAXCONN=${ODOO_DB_MAXCONN:-8}
+      - ODOO_WORKERS=${ODOO_WORKERS:-0}
 
 volumes:
   odoo-data:

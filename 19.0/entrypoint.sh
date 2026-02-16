@@ -14,6 +14,8 @@ fi
 : ${PASSWORD:=${DB_ENV_POSTGRES_PASSWORD:=${POSTGRES_PASSWORD:='odoo'}}}
 : ${DB_NAME:='postgres'}
 : ${DB_SSLMODE:=''}
+: ${ODOO_DB_MAXCONN:='8'}
+: ${ODOO_WORKERS:='0'}
 
 DB_ARGS=()
 function check_config() {
@@ -29,6 +31,8 @@ check_config "db_host" "$HOST"
 check_config "db_port" "$DB_PORT"
 check_config "db_user" "$USER"
 check_config "db_password" "$PASSWORD"
+check_config "db_maxconn" "$ODOO_DB_MAXCONN"
+check_config "workers" "$ODOO_WORKERS"
 
 # Build wait-for-psql args (subset that the script supports)
 WAIT_ARGS=("--db_host" "$HOST" "--db_port" "$DB_PORT" "--db_user" "$USER" "--db_password" "$PASSWORD" "--db_name" "$DB_NAME")
