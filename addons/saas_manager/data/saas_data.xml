@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-        <!-- Reserved for future SaaS manager seed data. -->
+        <record id="ir_cron_saas_usage_daily" model="ir.cron">
+            <field name="name">SaaS Usage Snapshot (Daily)</field>
+            <field name="model_id" ref="model_saas_usage_log"/>
+            <field name="state">code</field>
+            <field name="code">model.cron_collect_daily_usage()</field>
+            <field name="active" eval="True"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="False"/>
+        </record>
     </data>
 </odoo>

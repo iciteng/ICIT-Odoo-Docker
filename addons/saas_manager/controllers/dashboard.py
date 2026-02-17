@@ -94,15 +94,29 @@ class SaasDashboardController(http.Controller):
 
             tenants = tenant_model.search([])
             total_tenants = len(tenants)
-            active_today = tenant_model.search_count([('status', '=', 'active')])
-
             company_ids = tenants.mapped('company_id').ids
-            total_users = users_model.search_count([('company_id', 'in', company_ids)]) if company_ids else 0
+            total_users = users_model.search_count([
+                ('company_id', 'in', company_ids),
+                ('share', '=', False),
+                ('active', '=', True),
+            ]) if company_ids else 0
 
-            storage_mb = 0.0
+            today = fields.Date.today()
             for tenant in tenants:
-                latest_log = usage_model.search([('tenant_id', '=', tenant.id)], order='date desc, id desc', limit=1)
-                storage_mb += latest_log.storage_mb if latest_log else 0.0
+                usage_model.upsert_tenant_day(tenant, day=today)
+
+            today_logs = usage_model.search([
+                ('tenant_id', 'in', tenants.ids),
+                ('date', '=', today),
+            ])
+            active_today = int(sum(today_logs.mapped('login_count')))
+            if active_today == 0:
+                active_today = int(sum(today_logs.mapped('active_users')))
+            storage_mb = float(sum(today_logs.mapped('storage_mb')))
+            if storage_mb <= 0:
+                request.env.cr.execute("SELECT pg_database_size(current_database())")
+                row = request.env.cr.fetchone()
+                storage_mb = float((row[0] or 0) / (1024.0 * 1024.0)) if row else 0.0
 
             return {
                 'total_tenants': total_tenants,
@@ -513,8 +527,10 @@ class SaasDashboardController(http.Controller):
             if not tenant.exists():
                 return self._json_error('Tenant not found.', status=404)
 
+            usage_model = request.env['saas.usage.log'].sudo()
+            usage_model.ensure_recent_for_tenant(tenant, days=30)
             start_date = fields.Date.today() - timedelta(days=29)
-            logs = request.env['saas.usage.log'].sudo().search(
+            logs = usage_model.search(
                 [('tenant_id', '=', tenant.id), ('date', '>=', start_date)],
                 order='date asc',
             )
