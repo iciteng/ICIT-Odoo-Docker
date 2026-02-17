@@ -471,8 +471,8 @@
             email: email,
             password: password
         })
-            .then(function () {
-                showToast('User added', 'success');
+            .then(function (data) {
+                showToast((data && data.message) || 'User added', 'success');
                 dom.newTenantUserName.value = '';
                 dom.newTenantUserEmail.value = '';
                 dom.newTenantUserPassword.value = '';

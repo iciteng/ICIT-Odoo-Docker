@@ -172,7 +172,8 @@ class SaasDashboardController(http.Controller):
                 raise ValidationError('Max users must be at least 1.')
             existing_user = request.env['res.users'].sudo().search([('login', '=ilike', admin_email)], limit=1)
             if existing_user:
-                raise ValidationError('A user with this email already exists.')
+                company_name = existing_user.company_id.name if existing_user.company_id else 'Unknown'
+                raise ValidationError(f'A user with this email already exists in "{company_name}".')
 
             cr = request.env.cr
             cr.execute('SAVEPOINT create_tenant_sp')
@@ -329,7 +330,14 @@ class SaasDashboardController(http.Controller):
 
             existing = request.env['res.users'].sudo().search([('login', '=ilike', email)], limit=1)
             if existing:
-                raise ValidationError('A user with this email already exists.')
+                if existing.company_id and existing.company_id.id == tenant.company_id.id:
+                    return {
+                        'success': True,
+                        'id': existing.id,
+                        'message': 'User already exists in this company.',
+                    }
+                company_name = existing.company_id.name if existing.company_id else 'Unknown'
+                raise ValidationError(f'A user with this email already exists in "{company_name}".')
 
             active_users = request.env['res.users'].sudo().search_count([
                 ('company_id', '=', tenant.company_id.id),
