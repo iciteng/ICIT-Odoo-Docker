@@ -3,7 +3,11 @@
     <data>
         <record id="group_icit_admin" model="res.groups">
             <field name="name">ICIT Admin</field>
-            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+            <field name="implied_ids" eval="[
+                (4, ref('base.group_user')),
+                (4, ref('base.group_multi_company')),
+                (4, ref('base.group_erp_manager'))
+            ]"/>
         </record>
 
         <record id="rule_saas_tenant_admin_all" model="ir.rule">

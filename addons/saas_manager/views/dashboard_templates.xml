@@ -185,6 +185,12 @@
                         <!-- Users List -->
                         <div class="detail-section">
                             <h3>Users</h3>
+                            <div class="user-add-row">
+                                <input type="text" id="newTenantUserName" placeholder="Full name" class="user-add-input"/>
+                                <input type="email" id="newTenantUserEmail" placeholder="user@company.com" class="user-add-input"/>
+                                <input type="password" id="newTenantUserPassword" placeholder="Password" class="user-add-input"/>
+                                <button class="btn btn-primary btn-sm" id="btnAddTenantUser">Add User</button>
+                            </div>
                             <div class="user-list" id="userList">
                                 <div class="loading-state loading-state--sm">
                                     <div class="spinner spinner--sm"></div>

@@ -31,6 +31,30 @@ class SaasDashboardController(http.Controller):
             raise AccessError('Access denied.')
         return user
 
+    def _is_icit_email(self, email):
+        return bool((email or '').strip().lower().endswith('@icitsolutions.com'))
+
+    def _main_company(self):
+        company = request.env['res.company'].sudo().search([], order='id asc', limit=1)
+        if not company:
+            raise ValidationError('Main company was not found.')
+        return company
+
+    def _icit_admin_group_ids(self):
+        """Groups every admin-portal ICIT admin must have."""
+        group_xmlids = [
+            'saas_manager.group_icit_admin',
+            'base.group_user',
+            'base.group_multi_company',
+            'base.group_erp_manager',
+        ]
+        group_ids = []
+        for xmlid in group_xmlids:
+            group = request.env.ref(xmlid, raise_if_not_found=False)
+            if group:
+                group_ids.append(group.id)
+        return group_ids
+
     def _dependency_roots(self, root_modules):
         """Map dependency module name -> set of enabled root module names that require it."""
         deps_model = request.env['ir.module.module.dependency'].sudo()
@@ -127,7 +151,7 @@ class SaasDashboardController(http.Controller):
         try:
             self._check_icit_admin()
             company_name = (kwargs.get('company_name') or '').strip()
-            admin_email = (kwargs.get('admin_email') or '').strip()
+            admin_email = (kwargs.get('admin_email') or '').strip().lower()
             admin_name = (kwargs.get('admin_name') or '').strip()
             admin_password = (kwargs.get('admin_password') or '').strip()
             plan = (kwargs.get('plan') or 'free').strip().lower()
@@ -138,12 +162,17 @@ class SaasDashboardController(http.Controller):
                 raise ValidationError('Company name, admin email, and admin name are required.')
             if not admin_password:
                 raise ValidationError('Admin password is required.')
+            if self._is_icit_email(admin_email):
+                raise ValidationError('ICIT emails are reserved for platform admins. Use a tenant email.')
             if plan == 'trial':
                 plan = 'free'
             if plan not in allowed_plans:
                 raise ValidationError('Invalid plan value.')
             if max_users < 1:
                 raise ValidationError('Max users must be at least 1.')
+            existing_user = request.env['res.users'].sudo().search([('login', '=ilike', admin_email)], limit=1)
+            if existing_user:
+                raise ValidationError('A user with this email already exists.')
 
             cr = request.env.cr
             cr.execute('SAVEPOINT create_tenant_sp')
@@ -226,6 +255,8 @@ class SaasDashboardController(http.Controller):
                 if 'admin_email' in kwargs:
                     admin_email = (kwargs.get('admin_email') or '').strip()
                     if admin_email:
+                        if self._is_icit_email(admin_email):
+                            raise ValidationError('ICIT emails are reserved for platform admins.')
                         admin_user_vals.update({'login': admin_email, 'email': admin_email})
                 if 'admin_name' in kwargs:
                     admin_name = (kwargs.get('admin_name') or '').strip()
@@ -267,13 +298,64 @@ class SaasDashboardController(http.Controller):
                 return self._json_error('Tenant not found.', status=404)
 
             users = request.env['res.users'].sudo().search([('company_id', '=', tenant.company_id.id)], order='name asc')
-            items = [{'name': user.name or '', 'login': user.login or ''} for user in users]
+            items = [{
+                'id': user.id,
+                'name': user.name or '',
+                'login': user.login or '',
+            } for user in users]
             return {'users': items}
         except AccessError as exc:
             return self._json_error(str(exc), status=403)
         except Exception:
             _logger.exception('Failed to fetch users for SaaS tenant %s.', tenant_id)
             return self._json_error('Failed to fetch tenant users.', status=500)
+
+    @http.route('/admin/api/tenants/<int:tenant_id>/users/add', type='jsonrpc', auth='user', methods=['POST'], csrf=False)
+    def add_tenant_user(self, tenant_id, **kwargs):
+        try:
+            self._check_icit_admin()
+            tenant = request.env['saas.tenant'].sudo().browse(tenant_id)
+            if not tenant.exists():
+                return self._json_error('Tenant not found.', status=404)
+
+            name = (kwargs.get('name') or '').strip()
+            email = (kwargs.get('email') or '').strip().lower()
+            password = (kwargs.get('password') or '').strip()
+
+            if not name or not email or not password:
+                raise ValidationError('Name, email, and password are required.')
+            if self._is_icit_email(email):
+                raise ValidationError('ICIT emails must be added in Admin Users and remain in the ICIT company.')
+
+            existing = request.env['res.users'].sudo().search([('login', '=ilike', email)], limit=1)
+            if existing:
+                raise ValidationError('A user with this email already exists.')
+
+            active_users = request.env['res.users'].sudo().search_count([
+                ('company_id', '=', tenant.company_id.id),
+                ('share', '=', False),
+                ('active', '=', True),
+            ])
+            if tenant.max_users and active_users >= tenant.max_users:
+                raise ValidationError('User limit reached for this company.')
+
+            user = request.env['res.users'].sudo().create({
+                'name': name,
+                'login': email,
+                'email': email,
+                'password': password,
+                'company_id': tenant.company_id.id,
+                'company_ids': [(6, 0, [tenant.company_id.id])],
+                'group_ids': [(4, request.env.ref('base.group_user').id)],
+            })
+            return {'success': True, 'id': user.id}
+        except AccessError as exc:
+            return self._json_error(str(exc), status=403)
+        except (ValidationError, ValueError) as exc:
+            return self._json_error(str(exc), status=400)
+        except Exception:
+            _logger.exception('Failed to add user for SaaS tenant %s.', tenant_id)
+            return self._json_error('Failed to add user.', status=500)
 
     @http.route('/admin/api/tenants/<int:tenant_id>/apps', type='jsonrpc', auth='user', methods=['POST'], csrf=False)
     def get_tenant_apps(self, tenant_id, **kwargs):
@@ -478,14 +560,19 @@ class SaasDashboardController(http.Controller):
             existing = users_model.search([('login', '=', email)], limit=1)
 
             icit_group = request.env.ref('saas_manager.group_icit_admin')
+            required_group_ids = self._icit_admin_group_ids()
+            main_company = self._main_company()
 
             if existing:
                 if icit_group.id in existing.group_ids.ids:
                     raise ValidationError('User already has admin access.')
-                existing.write({'group_ids': [(4, icit_group.id)]})
+                existing.write({
+                    'company_id': main_company.id,
+                    'company_ids': [(6, 0, [main_company.id])],
+                    'group_ids': [(4, gid) for gid in required_group_ids],
+                })
                 return {'success': True, 'id': existing.id, 'message': 'Admin access granted to existing user.'}
 
-            main_company = request.env['res.company'].sudo().search([], order='id asc', limit=1)
             new_user = users_model.create({
                 'name': name,
                 'login': email,
@@ -493,10 +580,7 @@ class SaasDashboardController(http.Controller):
                 'password': password,
                 'company_id': main_company.id,
                 'company_ids': [(6, 0, [main_company.id])],
-                'group_ids': [
-                    (4, request.env.ref('base.group_user').id),
-                    (4, icit_group.id),
-                ],
+                'group_ids': [(4, gid) for gid in required_group_ids],
             })
             return {'success': True, 'id': new_user.id}
         except AccessError as exc:
@@ -524,7 +608,11 @@ class SaasDashboardController(http.Controller):
                 raise ValidationError('User not found.')
 
             icit_group = request.env.ref('saas_manager.group_icit_admin')
-            user.write({'group_ids': [(3, icit_group.id)]})
+            groups_to_remove = [icit_group.id]
+            erp_group = request.env.ref('base.group_erp_manager', raise_if_not_found=False)
+            if erp_group:
+                groups_to_remove.append(erp_group.id)
+            user.write({'group_ids': [(3, gid) for gid in groups_to_remove]})
             return {'success': True}
         except AccessError as exc:
             return self._json_error(str(exc), status=403)

@@ -48,6 +48,10 @@
         dom.btnEditTenant = document.getElementById('btnEditTenant');
         dom.btnToggleStatus = document.getElementById('btnToggleStatus');
         dom.btnDeleteTenant = document.getElementById('btnDeleteTenant');
+        dom.btnAddTenantUser = document.getElementById('btnAddTenantUser');
+        dom.newTenantUserName = document.getElementById('newTenantUserName');
+        dom.newTenantUserEmail = document.getElementById('newTenantUserEmail');
+        dom.newTenantUserPassword = document.getElementById('newTenantUserPassword');
         dom.appList = document.getElementById('appList');
         dom.userList = document.getElementById('userList');
         dom.usageChart = document.getElementById('usageChart');
@@ -74,6 +78,27 @@
         dom.newAdminName = document.getElementById('newAdminName');
         dom.newAdminPassword = document.getElementById('newAdminPassword');
         dom.adminList = document.getElementById('adminList');
+        ensureTenantUserForm();
+    }
+
+    function ensureTenantUserForm() {
+        if (dom.btnAddTenantUser || !dom.userList) {
+            return;
+        }
+
+        var row = document.createElement('div');
+        row.className = 'user-add-row';
+        row.innerHTML =
+            '<input type="text" id="newTenantUserName" placeholder="Full name" class="user-add-input"/>' +
+            '<input type="email" id="newTenantUserEmail" placeholder="user@company.com" class="user-add-input"/>' +
+            '<input type="password" id="newTenantUserPassword" placeholder="Password" class="user-add-input"/>' +
+            '<button class="btn btn-primary btn-sm" id="btnAddTenantUser">Add User</button>';
+
+        dom.userList.parentNode.insertBefore(row, dom.userList);
+        dom.btnAddTenantUser = document.getElementById('btnAddTenantUser');
+        dom.newTenantUserName = document.getElementById('newTenantUserName');
+        dom.newTenantUserEmail = document.getElementById('newTenantUserEmail');
+        dom.newTenantUserPassword = document.getElementById('newTenantUserPassword');
     }
 
     /* =============================================
@@ -281,6 +306,15 @@
         dom.slideoutOverlay.classList.add('is-visible');
         dom.tenantSlideout.classList.add('is-open');
         dom.tenantSlideout.setAttribute('aria-hidden', 'false');
+        if (dom.newTenantUserName) {
+            dom.newTenantUserName.value = '';
+        }
+        if (dom.newTenantUserEmail) {
+            dom.newTenantUserEmail.value = '';
+        }
+        if (dom.newTenantUserPassword) {
+            dom.newTenantUserPassword.value = '';
+        }
 
         loadTenantUsers(tenantId);
         loadTenantApps(tenantId);
@@ -403,6 +437,56 @@
 
             dom.appList.appendChild(item);
         });
+    }
+
+    function addTenantUser() {
+        var tenantId = state.selectedTenantId;
+        if (!tenantId) {
+            showToast('Select a company first', 'error');
+            return;
+        }
+        if (!dom.newTenantUserName || !dom.newTenantUserEmail || !dom.newTenantUserPassword) {
+            showToast('User form is not ready. Reload the page.', 'error');
+            return;
+        }
+
+        var name = dom.newTenantUserName.value.trim();
+        var email = dom.newTenantUserEmail.value.trim().toLowerCase();
+        var password = dom.newTenantUserPassword.value.trim();
+
+        if (!name || !email || !password) {
+            showToast('Name, email, and password are required.', 'error');
+            return;
+        }
+        if (email.endsWith('@icitsolutions.com')) {
+            showToast('ICIT emails must be added in Admin Users.', 'error');
+            return;
+        }
+
+        dom.btnAddTenantUser.disabled = true;
+        dom.btnAddTenantUser.textContent = 'Adding...';
+
+        apiCall('/admin/api/tenants/' + tenantId + '/users/add', {
+            name: name,
+            email: email,
+            password: password
+        })
+            .then(function () {
+                showToast('User added', 'success');
+                dom.newTenantUserName.value = '';
+                dom.newTenantUserEmail.value = '';
+                dom.newTenantUserPassword.value = '';
+                loadTenantUsers(tenantId);
+                loadTenants();
+                loadStats();
+            })
+            .catch(function (err) {
+                showToast('Error: ' + err.message, 'error');
+            })
+            .finally(function () {
+                dom.btnAddTenantUser.disabled = false;
+                dom.btnAddTenantUser.textContent = 'Add User';
+            });
     }
 
     function toggleApp(tenantId, appId, enabled, itemEl) {
@@ -802,6 +886,9 @@
         dom.btnEditTenant.addEventListener('click', editCurrentTenant);
         dom.btnToggleStatus.addEventListener('click', toggleTenantStatus);
         dom.btnDeleteTenant.addEventListener('click', deleteTenant);
+        if (dom.btnAddTenantUser) {
+            dom.btnAddTenantUser.addEventListener('click', addTenantUser);
+        }
 
         /* Admin users modal */
         dom.btnManageAdmins.addEventListener('click', openAdminModal);

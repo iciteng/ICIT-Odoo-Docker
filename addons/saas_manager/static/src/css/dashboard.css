@@ -690,6 +690,31 @@ body {
 }
 
 /* --- User List --- */
+.user-add-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.user-add-input {
+    flex: 1;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 6px;
+    color: #fff;
+    font-size: 13px;
+}
+
+.user-add-input::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.user-add-input:focus {
+    outline: none;
+    border-color: #1da1c7;
+}
+
 .user-item {
     display: flex;
     align-items: center;
@@ -1133,6 +1158,10 @@ body {
 
     .form-row {
         grid-template-columns: 1fr;
+    }
+
+    .user-add-row {
+        flex-direction: column;
     }
 
     .header-user {
